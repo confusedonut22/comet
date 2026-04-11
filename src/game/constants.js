@@ -1,5 +1,5 @@
 // Degen Blackjack — Game Constants
-// Chad Labs / Stake Engine RGS
+// ChadJack / Stake Engine RGS
 
 export {
   MONEY_SCALE,
@@ -28,7 +28,7 @@ import chip1    from "../assets/chip_1.png";
 import chip5    from "../assets/chip_5.png";
 import chip25   from "../assets/chip_25.png";
 import chip100  from "../assets/chip_100.png";
-import logo     from "../assets/chad_labs_logo.png";
+import logo     from "../assets/chadjack_logo_transparent.png";
 import cardBack from "../assets/chadjack_card_back.png";
 
 export const CHIP_IMAGES = {

@@ -498,7 +498,7 @@
     <div class="dealer-area" class:dealer-area-hidden={isBet}>
       {#if $dealerHand.length > 0}
         <!-- Logo moves left of dealer cards once dealt -->
-        <img src={LOGO_IMAGE} alt="Chad Labs" class="dealer-logo" />
+        <img src={LOGO_IMAGE} alt="ChadJack" class="dealer-logo" />
         <div class="dealer-cards-col">
           <div class="hand-value">{dealerDisplay}</div>
           <div class="cards-row">
@@ -541,10 +541,10 @@
     <!-- CHAD LABS LOGO — right side, parallel with dealer logo -->
     {#if isBet && !hideBetLogoDuringRedeal}
       <div class="felt-logo-row">
-        <img src={LOGO_IMAGE} alt="Chad Labs" class="felt-logo felt-logo-large" />
+        <img src={LOGO_IMAGE} alt="ChadJack" class="felt-logo felt-logo-large" />
       </div>
     {:else}
-      <img src={LOGO_IMAGE} alt="Chad Labs" class="felt-logo felt-logo-right" />
+      <img src={LOGO_IMAGE} alt="ChadJack" class="felt-logo felt-logo-right" />
     {/if}
 
     <!-- FIXED HEIGHT MIDDLE ZONE — always 87px, locks player cards to y=422 -->
@@ -776,7 +776,7 @@
           <div class="panel-title">About</div>
           <div class="about-text">{isSocial
             ? "Built for social casino play. Side plays, multiple hands, and autoplay across three strategies. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token that may be redeemable for prizes where permitted. No purchase is necessary, void where prohibited, and players should play responsibly."
-            : "We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so Chad Labs did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one."
+            : "We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one."
           }</div>
         </div>
       {/if}
