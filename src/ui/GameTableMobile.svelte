@@ -2310,6 +2310,14 @@
     }
 
     .dealer-area        { min-height: 64px; gap: 10px; }
+    /* MOBILE FIX — prevent dealer area collapse causing card drift on new hand */
+    .dealer-area-hidden {
+      min-height: 64px !important;
+      visibility: hidden;
+    }
+    .dealer-area-hidden .dealer-placeholder {
+      height: 96px;
+    }
     .dealer-logo,
     .felt-logo-right { display: none; }
     .dealer-placeholder { height: 96px; }
@@ -2647,6 +2655,20 @@
 
     /* Compact dealer */
     .dealer-area        { min-height: 52px; gap: 6px; }
+    /* MOBILE FIX — preserve dealer height during BET phase (compact) */
+    .dealer-area-hidden {
+      min-height: 52px !important;
+      visibility: hidden;
+    }
+    .felt.single-hand .dealer-area-hidden {
+      min-height: 96px !important;
+    }
+    .dealer-area-hidden .dealer-placeholder {
+      height: 64px;
+    }
+    .felt.single-hand .dealer-area-hidden .dealer-placeholder {
+      height: 96px;
+    }
     .dealer-placeholder { height: 64px; }
     .dealer-cards-col   { max-width: 100%; }
     .dealer-area .card-wrap { flex-shrink: 0; }
