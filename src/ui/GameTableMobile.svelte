@@ -2554,6 +2554,8 @@
       min-height: 100dvh;
       overflow: hidden;
       background: none !important;
+      --mobile-geometry-scale: 0.9;
+      --mobile-zoom: 0.9;
     }
     .table-wrap[class*="felt-theme-"] {
       background: none !important;
@@ -2661,7 +2663,7 @@
       padding-top: 20px;
     }
     .table-wrap.phase-bet .felt.single-hand .hands-row {
-      padding-top: 28px;
+      padding-top: 92px;
     }
     .table-wrap.phase-bet .hands-row.two {
       padding-top: var(--bet-two-hand-top);
@@ -2877,10 +2879,10 @@
     .felt {
       padding: 30px 10px 0;
       padding-bottom: 176px;
-      transform: none;
-      transform-origin: initial;
-      width: 100%;
-      margin-left: 0;
+      transform: scale(var(--mobile-zoom));
+      transform-origin: top center;
+      width: calc(100% / var(--mobile-zoom));
+      margin-left: calc((100% - (100% / var(--mobile-zoom))) / 2);
       margin-right: 0;
       background: transparent !important;
       overflow: hidden;
@@ -3131,21 +3133,21 @@
       min-height: 168px;
       flex: 0 0 168px;
       gap: 6px;
-      margin-top: -30px;
+      margin-top: -20px;
       margin-bottom: 6px;
       justify-content: center;
       align-items: flex-start;
     }
     .table-wrap.phase-play .hand-value {
       display: flex;
-      margin: 0;
+      margin: 0 0 4px 0;
       font-size: 15px;
       padding: 2px 10px;
-      position: fixed;
-      top: calc(max(4px, env(safe-area-inset-top)) + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 45;
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      z-index: 1;
       pointer-events: none;
     }
     .table-wrap.phase-play .dealer-cards-col {
@@ -3173,7 +3175,7 @@
       place-items: center;
       width: 100vw;
       min-height: 30px;
-      margin: 8px calc(50% - 50vw) 10px;
+      margin: -16px calc(50% - 50vw) 10px;
       padding: 0;
       gap: 0;
       position: relative;
@@ -3838,6 +3840,75 @@
     flex: 0 0 40px !important;
     width: 40px !important;
     margin-right: 0 !important;
+  }
+
+  /* Final anchor-triad lock: phase-result-two-hand only */
+  .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
+    transform: translateY(-18px) !important;
+    margin-bottom: -14px !important;
+  }
+  .table-wrap.phase-result-two-hand .mid-zone .divider-copy {
+    transform: translateY(-9px) !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .sb-and-cards {
+    gap: 0 !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
+    transform: translateX(58px) !important;
+    margin-right: 0 !important;
+  }
+
+  /* Mobile geometry scale lock (90% of current) */
+  .table-wrap .card,
+  .table-wrap .card.small,
+  .table-wrap .card-placeholder,
+  .table-wrap .card-placeholder.small {
+    width: calc(86px * var(--mobile-geometry-scale)) !important;
+    height: calc(146px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .card-rank {
+    font-size: calc(17px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .card-suit-sm {
+    font-size: calc(14px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .card-center {
+    font-size: calc(34px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .dealer-cards-col .card,
+  .table-wrap .dealer-cards-col .card.small,
+  .table-wrap .hands-row.multi ~ .dealer-area .card,
+  .table-wrap .hands-row.multi ~ .dealer-area .card.small,
+  .table-wrap .hands-row.multi ~ .dealer-area .card-placeholder,
+  .table-wrap .hands-row.multi ~ .dealer-area .card-placeholder.small,
+  .table-wrap .hands-row.multi .card,
+  .table-wrap .hands-row.multi .card.small,
+  .table-wrap .hands-row.multi .card-placeholder,
+  .table-wrap .hands-row.multi .card-placeholder.small {
+    width: calc(92px * var(--mobile-geometry-scale)) !important;
+    height: calc(156px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .dealer-cards-col .card-rank,
+  .table-wrap .hands-row.multi ~ .dealer-area .card-rank,
+  .table-wrap .hands-row.multi .card-rank {
+    font-size: calc(18px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .dealer-cards-col .card-suit-sm,
+  .table-wrap .hands-row.multi ~ .dealer-area .card-suit-sm,
+  .table-wrap .hands-row.multi .card-suit-sm {
+    font-size: calc(15px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap .dealer-cards-col .card-center,
+  .table-wrap .hands-row.multi ~ .dealer-area .card-center,
+  .table-wrap .hands-row.multi .card-center {
+    font-size: calc(36px * var(--mobile-geometry-scale)) !important;
+  }
+  .table-wrap.phase-play .dealer-area {
+    min-height: calc(168px * var(--mobile-geometry-scale));
+    flex-basis: calc(168px * var(--mobile-geometry-scale));
+  }
+  .table-wrap .felt.single-hand .dealer-area {
+    min-height: calc(96px * var(--mobile-geometry-scale));
   }
   }
   @media (max-width: 767px) and (max-height: 760px) {
