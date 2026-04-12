@@ -296,6 +296,7 @@
   let showAbout = false;
   let showFeltPanel = false;
   let showOptionsMenu = false;
+  let feltEl;
   let soundMuted = false;
   let feltTheme = "felt-green";
 
@@ -389,6 +390,14 @@
 
   function stopEvent(event) {
     event?.stopPropagation?.();
+  }
+
+  function onAddSlot(event) {
+    event?.stopPropagation?.();
+    addSlot();
+    requestAnimationFrame(() => {
+      if (feltEl && (isBet || isResult)) feltEl.scrollTop = 0;
+    });
   }
 
   onMount(() => {
@@ -486,7 +495,24 @@
   </div>
 </div>
 {:else}
-<div class="table-wrap" class:phase-play={isPlay || isDealer || isIns || isResult} class:phase-result={isResult} class:phase-bet={isBet}>
+<div
+  class="table-wrap"
+  class:phase-play={isPlay || isDealer || isIns || isResult}
+  class:phase-result={isResult}
+  class:phase-result-single-hand={isResult && $numSlots === 1}
+  class:phase-result-two-hand={isResult && $numSlots === 2}
+  class:phase-bet={isBet}
+  class:phase-play-single-hand={isPlay && $numSlots === 1}
+  class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
+  class:felt-theme-velvet-green={feltTheme === "velvet-green"}
+  class:felt-theme-velvet-black={feltTheme === "velvet-black"}
+  class:felt-theme-ridge-blue={feltTheme === "ridge-blue"}
+  class:felt-theme-ridge-green={feltTheme === "ridge-green"}
+  class:felt-theme-ridge-black={feltTheme === "ridge-black"}
+  class:felt-theme-felt-blue={feltTheme === "felt-blue"}
+  class:felt-theme-felt-green={feltTheme === "felt-green"}
+  class:felt-theme-felt-black={feltTheme === "felt-black"}
+>
   <!-- BALANCE -->
   <div class="balance-row">
     <div class="header-actions" on:click={stopEvent}>
@@ -621,6 +647,7 @@
   <!-- FELT AREA -->
   <div
     class="felt"
+    bind:this={feltEl}
     class:single-hand={!multi}
     class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
     class:felt-theme-velvet-green={feltTheme === "velvet-green"}
@@ -922,7 +949,7 @@
           <div class="ghost-row">
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="ghost" on:click={addSlot}>+</div>
+            <div class="ghost" on:click={onAddSlot}>+</div>
             {#if showMobileAutoplay}
               <button class="btn-autoplay-image ghost-autoplay" type="button" aria-label="Autoplay" on:click={toggleAutoPanel}>
                 <img src={AUTOPLAY_BUTTON} alt="" />
@@ -982,21 +1009,9 @@
       {/if}
 
 
-      {#if isPlay || isResult}
+      {#if isPlay}
         {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
-        {#if $message && isResult}
-          <div class="action-result-msg">
-            <span class="nav-result-text" class:win={$message === 'You Win!' || $message === 'Push'} class:lose={$message === 'Dealer Wins'}>{$message}</span>
-          </div>
-        {/if}
         <div class="action-wager-label">{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
-      {/if}
-      {#if !isDesktop && showMobileAutoplay}
-        <div class="mobile-autoplay-launch">
-          <button class="btn-autoplay-image ghost-autoplay" type="button" aria-label="Autoplay" on:click={toggleAutoPanel}>
-            <img src={AUTOPLAY_BUTTON} alt="" />
-          </button>
-        </div>
       {/if}
       <!-- Action area: stop bar replaces grid during autoplay, both same fixed height -->
       <div class="action-area-fixed">
@@ -1011,6 +1026,11 @@
           </div>
         {/if}
       </div>
+      {#if $message && isResult}
+        <div class="action-result-msg">
+          <span class="nav-result-text" class:win={$message === 'You Win!' || $message === 'Push'} class:lose={$message === 'Dealer Wins'}>{$message}</span>
+        </div>
+      {/if}
 
       <!-- Deal button -->
       {#if (isBet || isResult) && !isReplay}
@@ -1320,7 +1340,8 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
-  .felt.felt-theme-velvet-blue {
+  .felt.felt-theme-velvet-blue,
+  .table-wrap.felt-theme-velvet-blue {
     background:
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
@@ -1329,16 +1350,34 @@
     background-position: center top, center center, center top;
   }
   .felt.felt-theme-velvet-green,
-  .felt.felt-theme-felt-green {
+  .table-wrap.felt-theme-velvet-green {
     background:
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
-      url('/green.felt.final.png');
+      url('/velvet-emerald-base.png');
+    background-size: cover, cover, cover;
+    background-position: center top, center center, center top;
+  }
+  .felt.felt-theme-felt-green,
+  .table-wrap.felt-theme-felt-green {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
+      url('/felt-green-base.png');
     background-size: cover, cover, cover;
     background-position: center top, center center, center top;
   }
   .felt.felt-theme-velvet-black,
-  .felt.felt-theme-felt-black {
+  .table-wrap.felt-theme-velvet-black {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
+      url('/velvet-black-base.png');
+    background-size: cover, cover, cover;
+    background-position: center top, center center, center top;
+  }
+  .felt.felt-theme-felt-black,
+  .table-wrap.felt-theme-felt-black {
     background:
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
@@ -1347,7 +1386,16 @@
     background-position: center top, center center, center top;
   }
   .felt.felt-theme-ridge-blue,
-  .felt.felt-theme-felt-blue {
+  .table-wrap.felt-theme-ridge-blue {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
+      url('/ridge-blue-base.png');
+    background-size: cover, cover, cover;
+    background-position: center top, center center, center top;
+  }
+  .felt.felt-theme-felt-blue,
+  .table-wrap.felt-theme-felt-blue {
     background:
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
@@ -1355,7 +1403,8 @@
     background-size: cover, cover, cover;
     background-position: center top, center center, center top;
   }
-  .felt.felt-theme-ridge-green {
+  .felt.felt-theme-ridge-green,
+  .table-wrap.felt-theme-ridge-green {
     background:
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
@@ -1363,7 +1412,8 @@
     background-size: cover, cover, cover;
     background-position: center top, center center, center top;
   }
-  .felt.felt-theme-ridge-black {
+  .felt.felt-theme-ridge-black,
+  .table-wrap.felt-theme-ridge-black {
     background:
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
@@ -1609,7 +1659,7 @@
     font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #e8d48b;
+    color: #d4a840;
     text-align: center;
   }
 
@@ -1639,39 +1689,86 @@
 
   /* FIXED HEIGHT MID ZONE — keeps player cards locked */
   .mid-zone {
-    height: 28px !important;
-    min-height: 28px !important;
-    max-height: 28px !important;
+    position: relative;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
     flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     overflow: visible;
   }
 
   /* DIVIDER — play screen */
   .divider-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
-    height: 28px;
+    height: 1px;
     flex-shrink: 0;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin: 0;
   }
   .divider-row.has-result { gap: 10px; }
-  .divider-line  { flex: 1; height: 1px; background: rgba(212,168,64,0.35); }
+  .divider-line  {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(212,168,64,0.14) 0%,
+      rgba(212,168,64,0.42) 18%,
+      rgba(212,168,64,0.52) 50%,
+      rgba(212,168,64,0.42) 82%,
+      rgba(212,168,64,0.14) 100%
+    );
+    box-shadow:
+      0 1px 0 rgba(6, 24, 15, 0.45),
+      0 -1px 0 rgba(255, 227, 160, 0.08);
+    opacity: 0.88;
+  }
   .divider-label { font-size: 13px; padding: 0 14px; opacity: 0.92; font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e8d48b; }
   .divider-copy {
+    position: relative;
+    z-index: 2;
     font-family: 'Oswald', sans-serif;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #e8d48b;
+    color: #d4a840;
     white-space: nowrap;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+    text-shadow:
+      0 1px 0 rgba(0,0,0,0.42),
+      0 0 8px rgba(4, 24, 14, 0.55);
+  }
+  .table-wrap.phase-bet .mid-zone {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--bet-divider-top, calc(max(4px, env(safe-area-inset-top)) + 170px));
+    gap: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .table-wrap.phase-bet .divider-line {
+    opacity: 0.64;
+    box-shadow:
+      0 1px 0 rgba(6, 24, 15, 0.52),
+      0 -1px 0 rgba(255, 227, 160, 0.05);
+  }
+  .table-wrap.phase-bet .divider-copy {
+    color: #cfa54a;
+    text-shadow:
+      0 1px 0 rgba(0,0,0,0.46),
+      0 0 6px rgba(4, 24, 14, 0.48);
   }
   .divider-result-msg {
     display: flex;
@@ -2451,6 +2548,111 @@
 
   /* ── MOBILE OPTIMIZATIONS (max 767px) ─────────────────────────────────── */
   @media (max-width: 767px) {
+    .table-wrap {
+      position: relative;
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+      background: none !important;
+    }
+    .table-wrap[class*="felt-theme-"] {
+      background: none !important;
+    }
+    .table-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: var(--table-texture-image, url('/felt-green-base.png'));
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+    }
+    .table-wrap.felt-theme-velvet-blue { --table-texture-image: url('/velvet-blue-base.png'); }
+    .table-wrap.felt-theme-velvet-green { --table-texture-image: url('/velvet-emerald-base.png'); }
+    .table-wrap.felt-theme-velvet-black { --table-texture-image: url('/velvet-black-base.png'); }
+    .table-wrap.felt-theme-ridge-blue { --table-texture-image: url('/ridge-blue-base.png'); }
+    .table-wrap.felt-theme-ridge-green { --table-texture-image: url('/ridge-green-base.png'); }
+    .table-wrap.felt-theme-ridge-black { --table-texture-image: url('/ridge-black-base.png'); }
+    .table-wrap.felt-theme-felt-blue { --table-texture-image: url('/felt-blue-base.png'); }
+    .table-wrap.felt-theme-felt-green { --table-texture-image: url('/felt-green-base.png'); }
+    .table-wrap.felt-theme-felt-black { --table-texture-image: url('/felt-black-base.png'); }
+    .table-wrap > * {
+      position: relative;
+      z-index: 1;
+    }
+    .table-wrap.phase-bet {
+      --vertical-guide-offset: -106px;
+      /* Mobile bet-screen anchor lock */
+      --bet-logo-top: calc(max(4px, env(safe-area-inset-top)) + 8px);
+      --bet-divider-top: calc(max(4px, env(safe-area-inset-top)) + 150px);
+      --bet-single-hand-top: 148px;
+      --bet-two-hand-top: 132px;
+      --bet-hands-stack-top: 0px;
+    }
+    .table-wrap.phase-play-single-hand {
+      --vertical-guide-offset: 0px;
+    }
+    .table-wrap.phase-result-single-hand {
+      --vertical-guide-offset: 0px;
+    }
+    .table-wrap.phase-result-two-hand {
+      --vertical-guide-offset: 0px;
+    }
+    .table-wrap.phase-bet::after,
+    .table-wrap.phase-play-single-hand::after,
+    .table-wrap.phase-result-single-hand::after,
+    .table-wrap.phase-result-two-hand::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% + var(--vertical-guide-offset, 0px));
+      width: 1px;
+      transform: translateX(-0.5px);
+      background: linear-gradient(
+        180deg,
+        rgba(212, 168, 64, 0.08) 0%,
+        rgba(212, 168, 64, 0.34) 16%,
+        rgba(212, 168, 64, 0.42) 50%,
+        rgba(212, 168, 64, 0.34) 84%,
+        rgba(212, 168, 64, 0.08) 100%
+      );
+      box-shadow: 0 0 2px rgba(212, 168, 64, 0.24);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .table-wrap.phase-result-single-hand::after {
+      z-index: 5;
+    }
+    .table-wrap.phase-result-two-hand::after {
+      z-index: 5;
+    }
+    .table-wrap.phase-bet .bottom-dock,
+    .table-wrap.phase-bet .balance-row,
+    .table-wrap.phase-bet .balance-subrow,
+    .table-wrap.phase-bet .mobile-options-drawer,
+    .table-wrap.phase-play .bottom-dock,
+    .table-wrap.phase-play .balance-row,
+    .table-wrap.phase-play .balance-subrow,
+    .table-wrap.phase-play .mobile-options-drawer {
+      position: relative;
+      z-index: 4;
+    }
+    .table-wrap.phase-bet .balance-row,
+    .table-wrap.phase-play .balance-row,
+    .table-wrap.phase-result .balance-row,
+    .table-wrap.phase-bet .balance-subrow,
+    .table-wrap.phase-play .balance-subrow,
+    .table-wrap.phase-result .balance-subrow,
+    .table-wrap.phase-bet .mobile-options-drawer,
+    .table-wrap.phase-play .mobile-options-drawer,
+    .table-wrap.phase-result .mobile-options-drawer {
+      background: transparent !important;
+      backdrop-filter: none !important;
+    }
+
     /* Hands row takes natural height so felt can scroll past it */
     .hands-row {
       flex: 0 0 auto;
@@ -2463,6 +2665,22 @@
     }
     .felt.single-hand .hands-row {
       padding-top: 68px;
+    }
+    .table-wrap.phase-bet .hands-row {
+      padding-top: 20px;
+    }
+    .table-wrap.phase-bet .felt.single-hand .hands-row {
+      padding-top: 28px;
+    }
+    .table-wrap.phase-bet .hands-row.two {
+      padding-top: var(--bet-two-hand-top);
+    }
+    .table-wrap.phase-bet .hands-stack {
+      position: relative;
+      top: var(--bet-hands-stack-top);
+      left: 0;
+      right: 0;
+      margin: 0;
     }
     .hands-stack.split-stack {
       gap: 8px;
@@ -2496,7 +2714,8 @@
     .hands-row.two .cards-area {
       width: min(100%, 308px);
       margin: 0 auto;
-      transform: none;
+      transform: scale(0.875);
+      transform-origin: top center;
     }
     .hands-row.two .cards-col {
       align-items: center;
@@ -2663,17 +2882,21 @@
       padding: 8px 10px env(safe-area-inset-bottom);
     }
 
-    /* Felt: tighter top padding, enough bottom clearance for sticky dock */
+    /* Felt: native-size layout (no scaled canvas) with shared table texture */
     .felt {
       padding: 30px 10px 0;
       padding-bottom: 176px;
-      transform: scale(0.8);
-      transform-origin: top center;
-      width: 125%;
-      margin-left: -12.5%;
-      margin-right: -12.5%;
+      transform: none;
+      transform-origin: initial;
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      background: transparent !important;
       overflow: hidden;
       overscroll-behavior: none;
+    }
+    .felt::before {
+      display: none;
     }
     .table-wrap.phase-play .felt {
       display: flex;
@@ -2683,6 +2906,9 @@
     }
     .felt.single-hand {
       padding-top: 34px;
+    }
+    .table-wrap.phase-bet .felt.single-hand {
+      padding-top: var(--bet-single-hand-top);
     }
     .action-area-fixed {
       margin-bottom: 0;
@@ -2766,6 +2992,16 @@
       gap: 6px;
       pointer-events: none;
     }
+    .table-wrap.phase-bet .mobile-options-drawer {
+      position: fixed !important;
+      top: calc(max(4px, env(safe-area-inset-top)) + 72px) !important;
+      right: 12px !important;
+      left: auto !important;
+      width: min(120px, calc(100vw - 24px)) !important;
+      z-index: 46 !important;
+      padding: 4px 0 0 !important;
+      pointer-events: none !important;
+    }
     .mobile-options-row {
       display: grid;
       grid-template-columns: 1fr;
@@ -2818,6 +3054,17 @@
 
     /* Compact felt logo + divider */
     .felt-logo-row  { padding: 4px 0 8px; }
+    .table-wrap.phase-bet .felt-logo-row {
+      position: fixed;
+      top: var(--bet-logo-top);
+      left: 0;
+      right: 0;
+      margin-top: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
     .felt-logo      { width: 52px; height: 52px; }
     .felt-logo-large {
       opacity: 0.94;
@@ -2890,18 +3137,25 @@
     }
     .dealer-pays-wrap   { display: none; }
     .table-wrap.phase-play .dealer-area {
-      min-height: 220px;
-      flex: 0 0 220px;
+      min-height: 168px;
+      flex: 0 0 168px;
       gap: 6px;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      margin-top: -30px;
+      margin-bottom: 6px;
       justify-content: center;
+      align-items: flex-start;
     }
     .table-wrap.phase-play .hand-value {
       display: flex;
-      margin-bottom: 0;
+      margin: 0;
       font-size: 15px;
       padding: 2px 10px;
+      position: fixed;
+      top: calc(max(4px, env(safe-area-inset-top)) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      pointer-events: none;
     }
     .table-wrap.phase-play .dealer-cards-col {
       transform: none;
@@ -2924,14 +3178,46 @@
       min-height: 156px;
     }
     .table-wrap.phase-play .dealer-pays-wrap {
-      display: flex;
+      display: grid;
+      place-items: center;
       width: 100vw;
-      margin: 6px calc(50% - 50vw) 0;
+      min-height: 30px;
+      margin: 8px calc(50% - 50vw) 10px;
       padding: 0;
-      gap: 6px;
+      gap: 0;
+      position: relative;
     }
     .table-wrap.phase-play .dealer-cards-col .dealer-pays-wrap {
       margin-top: 0;
+    }
+    .table-wrap.phase-play .dealer-pays-line {
+      grid-area: 1 / 1;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        rgba(212,168,64,0.14) 0%,
+        rgba(212,168,64,0.42) 18%,
+        rgba(212,168,64,0.52) 50%,
+        rgba(212,168,64,0.42) 82%,
+        rgba(212,168,64,0.14) 100%
+      );
+      box-shadow:
+        0 1px 0 rgba(6, 24, 15, 0.45),
+        0 -1px 0 rgba(255, 227, 160, 0.08);
+      opacity: 0.88;
+    }
+    .table-wrap.phase-play .dealer-pays-copy {
+      grid-area: 1 / 1;
+      line-height: 1;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: #d4a840;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.42),
+        0 0 8px rgba(4, 24, 14, 0.55);
+      position: relative;
+      z-index: 2;
     }
     .table-wrap.phase-play .mid-zone {
       display: none;
@@ -2940,7 +3226,7 @@
       flex: 1 1 auto;
       align-items: flex-start;
       justify-content: center;
-      margin-top: 10px;
+      margin-top: 14px;
       margin-bottom: 0;
       gap: 8px;
       min-height: 0;
@@ -2969,14 +3255,14 @@
       font-size: 9px;
     }
     .table-wrap.phase-play .action-wager-label {
-      margin-bottom: 1px;
+      margin-bottom: 0;
       font-size: 12px;
     }
     .table-wrap.phase-play .bet-bar {
       margin-top: 0;
     }
     .table-wrap.phase-play .bottom-dock {
-      padding-top: 20px;
+      padding-top: 6px;
       border-top: 1px solid rgba(212, 168, 64, 0.18);
       box-shadow: inset 0 14px 18px rgba(0, 0, 0, 0.16);
     }
@@ -2984,20 +3270,21 @@
       background: transparent;
       border-top: none;
       box-shadow: none;
+      padding-top: 4px;
     }
     .table-wrap.phase-result .action-area-fixed {
       background: transparent;
+      display: none;
     }
-    .table-wrap.phase-play .dealer-pays-line {
-      width: 100%;
-      height: 1px;
-      background: rgba(232, 212, 139, 0.85);
+    .table-wrap.phase-result .action-wager-label {
+      margin-bottom: 2px;
     }
-    .table-wrap.phase-play .dealer-pays-copy {
-      font-size: 15px;
-      letter-spacing: 0.12em;
-      color: #e8d48b;
-      text-shadow: 0 0 8px rgba(212,168,64,0.18);
+    .table-wrap.phase-result .action-result-msg {
+      margin: 0 auto 4px;
+      min-height: 0;
+    }
+    .table-wrap.phase-result .center-deal-wrap {
+      padding-top: 0;
     }
     .felt.single-hand .dealer-area {
       min-height: 96px;
@@ -3038,19 +3325,63 @@
     }
     .sb-box,
     .sb-box-editing {
-      width: 48px;
-      min-height: 40px;
-      padding: 3px 2px;
+      width: 44px;
+      min-height: 36px;
+      padding: 2px 1px;
       gap: 1px;
       border-width: 2px;
+      border-radius: 9px;
     }
     .sb-box-label {
-      font-size: 10px;
-      line-height: 1.08;
+      font-size: 9px;
+      line-height: 1.02;
       letter-spacing: 0.03em;
     }
     .sb-box-amt {
       font-size: 10px;
+    }
+    .table-wrap.phase-bet .sb-col,
+    .table-wrap.phase-play .sb-col,
+    .table-wrap.phase-result .sb-col {
+      gap: 3px;
+    }
+    .table-wrap.phase-bet .sb-and-cards,
+    .table-wrap.phase-play .sb-and-cards,
+    .table-wrap.phase-result .sb-and-cards {
+      gap: 1px;
+    }
+    .table-wrap.phase-bet .felt.single-hand .sb-and-cards,
+    .table-wrap.phase-play .felt.single-hand .sb-and-cards,
+    .table-wrap.phase-result .felt.single-hand .sb-and-cards {
+      gap: 2px;
+    }
+    .table-wrap.phase-bet .felt.single-hand .sb-col,
+    .table-wrap.phase-play .felt.single-hand .sb-col,
+    .table-wrap.phase-result .felt.single-hand .sb-col {
+      margin-right: -1px;
+    }
+    .table-wrap.phase-bet .sb-box,
+    .table-wrap.phase-bet .sb-box-editing,
+    .table-wrap.phase-play .sb-box,
+    .table-wrap.phase-play .sb-box-editing,
+    .table-wrap.phase-result .sb-box,
+    .table-wrap.phase-result .sb-box-editing {
+      width: 40px;
+      min-height: 34px;
+      padding: 1px;
+      border-width: 1.8px;
+      border-radius: 7px;
+    }
+    .table-wrap.phase-bet .sb-box-label,
+    .table-wrap.phase-play .sb-box-label,
+    .table-wrap.phase-result .sb-box-label {
+      font-size: 8px;
+      line-height: 1;
+    }
+    .table-wrap.phase-bet .sb-box-amt,
+    .table-wrap.phase-play .sb-box-amt,
+    .table-wrap.phase-result .sb-box-amt {
+      font-size: 9px;
     }
 
     /* Make cards fit phone screens more comfortably */
@@ -3105,6 +3436,13 @@
       width: 84px;
       font-size: 18px;
     }
+    .table-wrap.phase-bet .bet-amount-row-with-actions .bet-quick-btn,
+    .table-wrap.phase-result .bet-amount-row-with-actions .bet-quick-btn {
+      min-height: 24px;
+      min-width: 35px;
+      padding: 0 8px;
+      font-size: 11px;
+    }
     .action-grid {
       width: 100%;
       max-width: 420px;
@@ -3150,6 +3488,68 @@
     .cards-col.has-sidebets .bet-bar {
       transform: translateX(var(--sidebet-center-offset));
     }
+    .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets,
+    .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets,
+    .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets {
+      --sidebet-center-offset: 0px;
+      transform: translateX(-26px);
+    }
+    .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+      transform: none;
+      align-self: center;
+    }
+    .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+      transform: translateX(26px);
+    }
+    .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .bet-bar {
+      transform: translateX(26px) scale(0.8);
+      transform-origin: center top;
+      align-self: center;
+    }
+    .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets .bet-bar {
+      transform: translateX(26px) scale(0.8);
+      transform-origin: center top;
+      align-self: center;
+    }
+    .table-wrap.phase-bet .felt.single-hand .cards-row,
+    .table-wrap.phase-play .felt.single-hand .cards-row,
+    .table-wrap.phase-result .felt.single-hand .cards-row {
+      transform: none;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .table-wrap.phase-bet .felt.single-hand .bet-bar,
+    .table-wrap.phase-result .felt.single-hand .bet-bar {
+      margin-left: 0;
+      align-self: center;
+      transform: translateX(26px) scale(0.8);
+      transform-origin: center top;
+    }
+    .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
+      transform: translateX(34px) scale(0.8);
+      transform-origin: center top;
+    }
+    .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
+      transform: translateX(34px) !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result-two-hand .hands-row.two .bet-bar {
+      transform: translateX(42px) scale(0.8) !important;
+      transform-origin: center top !important;
+      margin-left: 0 !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-play .felt.single-hand .bet-bar {
+      margin-left: 0;
+      align-self: center;
+      transform: translateX(26px) scale(0.8);
+      transform-origin: center top;
+    }
     .bet-bar {
       margin-left: 0;
       width: auto;
@@ -3178,6 +3578,85 @@
       grid-column: 3;
       justify-self: start;
       margin-left: 10px;
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets,
+    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets,
+    .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets {
+      transform: translateX(-21px);
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-row,
+    .table-wrap.phase-play .hands-row.two .cards-row,
+    .table-wrap.phase-result .hands-row.two .cards-row {
+      transform: none;
+      margin: 0 auto;
+      justify-content: center;
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets .bet-bar {
+      transform: translateX(21px) scale(0.8);
+      transform-origin: center top;
+    }
+    .table-wrap.phase-bet .hands-row.two .bet-bar,
+    .table-wrap.phase-result .hands-row.two .bet-bar {
+      transform: translateX(21px) scale(0.8);
+      transform-origin: center top;
+      margin-left: 0;
+      align-self: center;
+    }
+    .table-wrap.phase-play .hands-row.two .bet-bar {
+      transform: none;
+      margin-left: 0;
+      align-self: center;
+    }
+    /* Canonical lock: two-hand must match first-hand lane geometry */
+    .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets,
+    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets,
+    .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets {
+      --sidebet-center-offset: 0px !important;
+      transform: translateX(-26px) !important;
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets .hv-bubble {
+      transform: none !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-row,
+    .table-wrap.phase-play .hands-row.two .cards-row,
+    .table-wrap.phase-result .hands-row.two .cards-row {
+      transform: none !important;
+      justify-content: center !important;
+      margin: 0 auto !important;
+    }
+    .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-bet .hands-row.two .bet-bar,
+    .table-wrap.phase-result .hands-row.two .bet-bar {
+      transform: translateX(26px) scale(0.8) !important;
+      transform-origin: center top !important;
+      margin-left: 0 !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-play .hands-row.two .bet-bar {
+      transform: none !important;
+      margin-left: 0 !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-bet .hands-row.two .sb-col,
+    .table-wrap.phase-result .hands-row.two .sb-col {
+      transform: translateX(50px) !important;
+    }
+    .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
+      transform: translateX(26px) !important;
+      align-self: center !important;
+    }
+    .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .bet-bar,
+    .table-wrap.phase-result-two-hand .hands-row.two .bet-bar {
+      transform: translateX(34px) scale(0.8) !important;
+      transform-origin: center top !important;
+      margin-left: 0 !important;
+      align-self: center !important;
     }
     .bet-entry-btn    { font-size: 14px; min-width: 60px; min-height: 28px; }
 
@@ -3215,7 +3694,7 @@
     .divider-copy {
       font-size: 14px;
       letter-spacing: 0.12em;
-      color: #e8d48b;
+      color: #d4a840;
       text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 8px rgba(212,168,64,0.14);
     }
 
@@ -3311,7 +3790,13 @@
     background:
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
-      url('/green.felt.final.png');
+      url('/felt-green-base.png');
+  }
+  .texture-option.theme-velvet-green .texture-option-swatch {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
+      url('/velvet-emerald-base.png');
   }
   .texture-option.theme-velvet-black .texture-option-swatch,
   .texture-option.theme-felt-black .texture-option-swatch {
@@ -3320,12 +3805,24 @@
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
       url('/felt-black-base.png');
   }
+  .texture-option.theme-velvet-black .texture-option-swatch {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
+      url('/velvet-black-base.png');
+  }
   .texture-option.theme-ridge-blue .texture-option-swatch,
   .texture-option.theme-felt-blue .texture-option-swatch {
     background:
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
       url('/felt-blue-base.png');
+  }
+  .texture-option.theme-ridge-blue .texture-option-swatch {
+    background:
+      radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
+      radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
+      url('/ridge-blue-base.png');
   }
   .texture-option.theme-ridge-green .texture-option-swatch {
     background:
@@ -3338,6 +3835,18 @@
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
       url('/ridge-black-base.png');
+  }
+  .table-wrap.phase-bet .felt.single-hand .sb-and-cards,
+  .table-wrap.phase-play .felt.single-hand .sb-and-cards,
+  .table-wrap.phase-result .felt.single-hand .sb-and-cards {
+    gap: 0 !important;
+  }
+  .table-wrap.phase-bet .felt.single-hand .sb-col,
+  .table-wrap.phase-play .felt.single-hand .sb-col,
+  .table-wrap.phase-result .felt.single-hand .sb-col {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    margin-right: 0 !important;
   }
   }
   @media (max-width: 767px) and (max-height: 760px) {
