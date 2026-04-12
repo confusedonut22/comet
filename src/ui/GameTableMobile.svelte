@@ -17,6 +17,7 @@
   import { toggleMute, isMuted } from "../game/audio.js";
   import INTRO_VIDEO from "../assets/chad_labs_intro_powergrid_v7.mp4";
   import INTRO_VIDEO_MOBILE from "../assets/chad_labs_intro_powergrid_v7_mobile.mp4";
+  import AUTOPLAY_BUTTON from "../assets/autoplaybutton.png";
   import KING_SPADES_CHADJACK from "../assets/custom-face-cards/king-spades-chadjack.png";
   import KING_HEARTS_CHADJACK from "../assets/custom-face-cards/king-hearts-chadjack.png";
   import KING_CLUBS_CHADJACK from "../assets/custom-face-cards/king-clubs-chadjack.png";
@@ -113,6 +114,7 @@
   $: isReplay = $replayMode;
   $: isSocial = $sessionQuery.social || $runtimeJurisdiction?.socialCasino === true;
   $: autoplayDisabled = $runtimeJurisdiction?.disabledAutoplay === true;
+  $: showMobileAutoplay = !autoplayDisabled && !isBet;
   $: showRtp = $runtimeJurisdiction?.displayRTP !== false;
   $: availableSpeeds = Object.entries(SPEEDS).filter(([k]) => {
     if (k === '5x' && $runtimeJurisdiction?.disabledTurbo) return false;
@@ -484,15 +486,11 @@
   </div>
 </div>
 {:else}
-<div class="table-wrap">
+<div class="table-wrap" class:phase-play={isPlay || isDealer || isIns || isResult} class:phase-result={isResult} class:phase-bet={isBet}>
   <!-- BALANCE -->
   <div class="balance-row">
     <div class="header-actions" on:click={stopEvent}>
-      {#if !isReplay && !autoplayDisabled}
-        <button class="btn-tab btn-autoplay-cta" class:active={$showAuto || $autoPlay} class:stop={$autoPlay} on:click={toggleAutoPanel}>
-          {$autoPlay ? 'Stop Auto' : 'Autoplay'}
-        </button>
-      {/if}
+      <span class="mobile-balance-slot">{fmt($balance, displayCurrency)}</span>
       <button class="btn-tab btn-options-toggle" class:active={showOptionsMenu || $showRules || showFeltPanel || showAbout} on:click={toggleOptionsMenu}>Options</button>
     </div>
     <div class="session-meta">
@@ -724,7 +722,7 @@
           </div>
           <div class="dealer-pays-wrap">
             <div class="dealer-pays-line"></div>
-            <div class="dealer-pays-copy">Blackjack pays 7 to 5</div>
+            <div class="dealer-pays-copy">CHADJACK pays 7 to 5</div>
           </div>
         </div>
       {:else}
@@ -733,8 +731,8 @@
     </div>
 
     <!-- CHAD LABS LOGO — right side, parallel with dealer logo -->
-    {#if isBet && !hideBetLogoDuringRedeal}
-      <div class="felt-logo-row">
+    {#if isBet}
+      <div class="felt-logo-row" class:felt-logo-row-spacer={hideBetLogoDuringRedeal}>
         <img src={LOGO_IMAGE} alt="ChadJack" class="felt-logo felt-logo-large" />
       </div>
     {:else}
@@ -743,17 +741,15 @@
 
     <!-- FIXED HEIGHT MIDDLE ZONE — always 87px, locks player cards to y=422 -->
     <div class="mid-zone">
-      <div class="divider-row" class:has-result={$message && isResult}>
-        <div class="divider-line"></div>
-        <span class="divider-label">Blackjack pays 7 to 5</span>
+      <div class="divider-row">
         <div class="divider-line"></div>
       </div>
-
+      <div class="divider-copy">CHADJACK pays 7 to 5</div>
     </div>
     <!-- PLAYER HANDS -->
     <div class="hands-stack" class:split-stack={useSplitRows}>
       {#each handRows as row, rowIdx}
-      <div class="hands-row" class:multi class:four={$numSlots === 4} class:split-row={useSplitRows && row.some(({ hand }) => hand.isSplit)}>
+      <div class="hands-row" class:multi class:two={$numSlots === 2 && !useSplitRows} class:four={$numSlots === 4} class:split-row={useSplitRows && row.some(({ hand }) => hand.isSplit)}>
       <!-- Invisible left spacer mirrors ghost width — keeps card stack at screen center -->
       {#if rowIdx === 0 && (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div class="ghost-spacer"></div>
@@ -923,9 +919,16 @@
       <!-- Add hand ghost -->
       {#if (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div class="ghost-wrap">
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div class="ghost" on:click={addSlot}>+</div>
+          <div class="ghost-row">
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div class="ghost" on:click={addSlot}>+</div>
+            {#if showMobileAutoplay}
+              <button class="btn-autoplay-image ghost-autoplay" type="button" aria-label="Autoplay" on:click={toggleAutoPanel}>
+                <img src={AUTOPLAY_BUTTON} alt="" />
+              </button>
+            {/if}
+          </div>
         </div>
       {/if}
     </div>
@@ -987,6 +990,13 @@
           </div>
         {/if}
         <div class="action-wager-label">{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
+      {/if}
+      {#if !isDesktop && showMobileAutoplay}
+        <div class="mobile-autoplay-launch">
+          <button class="btn-autoplay-image ghost-autoplay" type="button" aria-label="Autoplay" on:click={toggleAutoPanel}>
+            <img src={AUTOPLAY_BUTTON} alt="" />
+          </button>
+        </div>
       {/if}
       <!-- Action area: stop bar replaces grid during autoplay, both same fixed height -->
       <div class="action-area-fixed">
@@ -1537,6 +1547,9 @@
     align-items: center;
     padding: 6px 0 4px;
   }
+  .felt-logo-row-spacer {
+    visibility: hidden;
+  }
   .felt-logo {
     width: 72px;
     height: 72px;
@@ -1633,6 +1646,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    gap: 4px;
     overflow: visible;
   }
 
@@ -1648,6 +1663,16 @@
   .divider-row.has-result { gap: 10px; }
   .divider-line  { flex: 1; height: 1px; background: rgba(212,168,64,0.35); }
   .divider-label { font-size: 13px; padding: 0 14px; opacity: 0.92; font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e8d48b; }
+  .divider-copy {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #e8d48b;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+  }
   .divider-result-msg {
     display: flex;
     align-items: center;
@@ -2070,6 +2095,28 @@
   .ghost-spacer { width: 104px; flex-shrink: 0; visibility: hidden; pointer-events: none; }
 
   .ghost-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 28px; }
+  .ghost-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    width: 100%;
+  }
+  .btn-autoplay-image {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    margin: 0;
+  }
+  .btn-autoplay-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
   .ghost {
     width: 104px; height: 146px; border-radius: 8px;
     border: 2.5px dashed rgba(255,255,255,0.55);
@@ -2358,7 +2405,9 @@
     .cards-area   { gap: 7px; }
 
     .ghost-wrap { padding-top: 0; }
+    .ghost-row { gap: 8px; }
     .ghost { width: 97px; height: 158px; font-size: 28px; }
+    .ghost-autoplay { width: min(88px, 22vw); }
     .ghost-spacer { width: 97px; }
     .cards-col { min-width: 97px; }
 
@@ -2426,6 +2475,93 @@
       padding-top: 8px;
     }
     .hands-row.multi { gap: 8px; }
+    .hands-row.two {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 22px;
+      min-height: 0;
+      padding-top: 22px;
+      padding-bottom: 22px;
+      width: 100%;
+    }
+    .hands-row.two .hand-col {
+      width: 100%;
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .hands-row.two .cards-area {
+      width: min(100%, 308px);
+      margin: 0 auto;
+      transform: none;
+    }
+    .hands-row.two .cards-col {
+      align-items: center;
+    }
+    .hands-row.two .sb-and-cards {
+      width: min(100%, 308px);
+      align-items: flex-start;
+      gap: 4px;
+      margin: 0 auto;
+    }
+    .hands-row.two .sb-col {
+      flex: 0 0 48px;
+      width: 48px;
+      gap: 4px;
+    }
+    .hands-row.two .cards-col.has-sidebets {
+      --sidebet-center-offset: 0px;
+      transform: none;
+    }
+    .hands-row.two .cards-col.has-sidebets .hv-bubble,
+    .hands-row.two .cards-col.has-sidebets .bet-bar {
+      transform: none;
+    }
+    .hands-row.two .cards-row {
+      align-items: flex-start;
+      justify-content: center;
+      min-height: 0;
+      transform: translateX(-10px);
+    }
+    .hands-row.two .card,
+    .hands-row.two .card.small,
+    .hands-row.two .card-placeholder,
+    .hands-row.two .card-placeholder.small {
+      width: 86px;
+      height: 146px;
+      border-radius: 8px;
+    }
+    .hands-row.two .card::before,
+    .hands-row.two .card.small::before {
+      border-radius: 8px;
+    }
+    .hands-row.two .card-rank {
+      font-size: 17px;
+    }
+    .hands-row.two .card-suit-sm {
+      font-size: 14px;
+    }
+    .hands-row.two .card-center {
+      font-size: 34px;
+    }
+    .hands-row.two .bet-bar {
+      width: auto;
+      min-width: 0;
+      margin-left: 0;
+      margin-top: 1px;
+      transform: none;
+      align-self: center;
+    }
+    .hands-row.two .hv-bubble {
+      font-size: 15px;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      align-self: center;
+    }
     .hands-row.multi.split-row {
       flex-wrap: nowrap;
       align-items: flex-start;
@@ -2475,7 +2611,7 @@
     .felt.single-hand .bet-bar {
       margin-left: 24px;
     }
-    .hands-row.multi:not(.split-row) .bet-bar {
+    .hands-row.multi:not(.split-row):not(.two) .bet-bar {
       margin-left: 24px;
     }
     .hands-row.multi.split-row .bet-bar {
@@ -2491,10 +2627,26 @@
     .felt.single-hand .ghost-wrap {
       padding-top: 24px;
     }
+    .ghost-row {
+      width: 100%;
+    }
     .ghost {
-      width: min(220px, 100%);
+      width: min(200px, calc(100% - 96px));
       height: 54px;
       border-radius: 16px;
+    }
+    .ghost-autoplay {
+      width: 88px;
+      flex: 0 0 auto;
+    }
+    .table-wrap.phase-bet .ghost-autoplay {
+      display: none;
+    }
+    .mobile-autoplay-launch {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 4px 0 0;
     }
 
     /* Sticky bottom dock — deal/action buttons always visible while scrolling */
@@ -2507,7 +2659,7 @@
       z-index: 30;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(to bottom, rgba(7,26,14,0) 0%, rgba(7,26,14,0.94) 18px, #071a0e 100%);
+      background: transparent;
       padding: 8px 10px env(safe-area-inset-bottom);
     }
 
@@ -2522,6 +2674,12 @@
       margin-right: -12.5%;
       overflow: hidden;
       overscroll-behavior: none;
+    }
+    .table-wrap.phase-play .felt {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0;
     }
     .felt.single-hand {
       padding-top: 34px;
@@ -2545,10 +2703,31 @@
       border-bottom: none;
       pointer-events: none;
     }
-    .header-actions {
-      pointer-events: auto;
-      gap: 6px;
-    }
+  .header-actions {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+  }
+  .mobile-balance-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.25);
+    background: transparent;
+    color: #ffffff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10.24px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    box-shadow: none;
+  }
     .utility-btns {
       width: auto;
       min-width: 0;
@@ -2560,16 +2739,17 @@
     .session-meta {
       display: none;
     }
-    .balance-subrow {
-      position: fixed;
-      top: calc(max(4px, env(safe-area-inset-top)) + 40px);
-      left: 0;
-      right: 0;
-      z-index: 44;
-      padding: 0 12px;
-      background: transparent;
-      pointer-events: none;
-    }
+  .balance-subrow {
+    position: fixed;
+    top: calc(max(4px, env(safe-area-inset-top)) + 40px);
+    left: 0;
+    right: 0;
+    z-index: 44;
+    padding: 0 12px;
+    background: transparent;
+    pointer-events: none;
+    display: none;
+  }
     .balance-meta-mobile {
       pointer-events: auto;
       justify-content: flex-end;
@@ -2598,12 +2778,25 @@
       pointer-events: auto;
     }
     .btn-options-item,
-    .btn-options-toggle,
     .btn-autoplay-cta {
       font-size: 10px !important;
       min-height: 24px !important;
       padding: 3px 8px !important;
       border-radius: 999px !important;
+    }
+    .btn-options-toggle {
+      min-height: 34px !important;
+      padding: 0 12px !important;
+      border-radius: 999px !important;
+      border: 1px solid rgba(232, 212, 139, 0.25) !important;
+      background: transparent !important;
+      color: #ffffff !important;
+      font-family: 'Oswald', sans-serif !important;
+      font-size: 10.24px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+      line-height: 1;
+      box-shadow: none !important;
     }
     .btn-utility {
       font-size: 10px !important;
@@ -2630,9 +2823,16 @@
       opacity: 0.94;
       width: min(360px, 96vw);
       height: 177px;
+      transform: scale(1.648);
+      transform-origin: center center;
     }
     .felt-logo-right,
     .dealer-logo { display: none; }
+    .table-wrap.phase-play .felt-logo-right,
+    .table-wrap.phase-play .dealer-logo,
+    .table-wrap.phase-play .hand-value {
+      display: none;
+    }
     .hands-row.multi .card-custom-art {
       transform-origin: center center;
       transform: scale(1.08);
@@ -2646,19 +2846,19 @@
     .fact-block { width: 140px; font-size: 11px; padding: 8px 10px; top: 8px; right: 8px; left: auto; }
 
     /* Compact dealer */
-    .dealer-area        { min-height: 52px; gap: 6px; }
+    .dealer-area        { min-height: 52px; gap: 6px; padding-top: 4px; padding-bottom: 4px; }
     .dealer-placeholder { height: 64px; }
     .dealer-cards-col   { max-width: 100%; }
     .dealer-area .card-wrap { flex-shrink: 0; }
     .dealer-cards-col .card,
     .dealer-cards-col .card.small {
-      width: 60px;
-      height: 102px;
-      border-radius: 6px;
+      width: 92px;
+      height: 156px;
+      border-radius: 8px;
     }
-    .dealer-cards-col .card-rank { font-size: 12px; }
-    .dealer-cards-col .card-suit-sm { font-size: 10px; }
-    .dealer-cards-col .card-center { font-size: 24px; }
+    .dealer-cards-col .card-rank { font-size: 18px; }
+    .dealer-cards-col .card-suit-sm { font-size: 15px; }
+    .dealer-cards-col .card-center { font-size: 36px; }
     .hands-row.multi ~ .dealer-area .card,
     .hands-row.multi ~ .dealer-area .card.small,
     .hands-row.multi ~ .dealer-area .card-placeholder,
@@ -2667,24 +2867,143 @@
     .hands-row.multi .card.small,
     .hands-row.multi .card-placeholder,
     .hands-row.multi .card-placeholder.small {
-      width: 60px;
-      height: 102px;
-      border-radius: 6px;
+      width: 92px;
+      height: 156px;
+      border-radius: 8px;
     }
     .hands-row.multi ~ .dealer-area .card-rank,
-    .hands-row.multi .card-rank { font-size: 12px; }
+    .hands-row.multi .card-rank { font-size: 18px; }
     .hands-row.multi ~ .dealer-area .card-suit-sm,
-    .hands-row.multi .card-suit-sm { font-size: 10px; }
+    .hands-row.multi .card-suit-sm { font-size: 15px; }
     .hands-row.multi ~ .dealer-area .card-center,
-    .hands-row.multi .card-center { font-size: 24px; }
-    .hand-value         { font-size: 18px; padding: 2px 12px; margin-bottom: 2px; }
+    .hands-row.multi .card-center { font-size: 36px; }
+    .hand-value {
+      background: linear-gradient(180deg, #e0b84c 0%, #b98b20 100%);
+      border: 1px solid rgba(255, 235, 173, 0.45);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 10px rgba(0,0,0,0.18);
+      color: #1e1605;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 2px 10px;
+      margin-bottom: 2px;
+      border-radius: 12px;
+    }
     .dealer-pays-wrap   { display: none; }
-    .dealer-pays-line   { width: min(160px, 48vw); }
-    .dealer-pays-copy   { font-size: 9px; letter-spacing: 0.11em; }
+    .table-wrap.phase-play .dealer-area {
+      min-height: 220px;
+      flex: 0 0 220px;
+      gap: 6px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      justify-content: center;
+    }
+    .table-wrap.phase-play .hand-value {
+      display: flex;
+      margin-bottom: 0;
+      font-size: 15px;
+      padding: 2px 10px;
+    }
+    .table-wrap.phase-play .dealer-cards-col {
+      transform: none;
+      width: 100%;
+      align-items: center;
+      gap: 6px;
+      margin-top: 0;
+    }
+    .table-wrap.phase-play .dealer-cards-col .card,
+    .table-wrap.phase-play .dealer-cards-col .card.small {
+      width: 92px;
+      height: 156px;
+      border-radius: 8px;
+    }
+    .table-wrap.phase-play .dealer-cards-col .card-rank { font-size: 18px; }
+    .table-wrap.phase-play .dealer-cards-col .card-suit-sm { font-size: 15px; }
+    .table-wrap.phase-play .dealer-cards-col .card-center { font-size: 36px; }
+    .table-wrap.phase-play .dealer-area .cards-row {
+      overflow: visible;
+      min-height: 156px;
+    }
+    .table-wrap.phase-play .dealer-pays-wrap {
+      display: flex;
+      width: 100vw;
+      margin: 6px calc(50% - 50vw) 0;
+      padding: 0;
+      gap: 6px;
+    }
+    .table-wrap.phase-play .dealer-cards-col .dealer-pays-wrap {
+      margin-top: 0;
+    }
+    .table-wrap.phase-play .mid-zone {
+      display: none;
+    }
+    .table-wrap.phase-play .hands-row {
+      flex: 1 1 auto;
+      align-items: flex-start;
+      justify-content: center;
+      margin-top: 10px;
+      margin-bottom: 0;
+      gap: 8px;
+      min-height: 0;
+    }
+    .table-wrap.phase-play .hands-row.multi {
+      gap: 6px;
+    }
+    .table-wrap.phase-play .hand-col {
+      justify-content: flex-start;
+    }
+    .table-wrap.phase-play .cards-area,
+    .table-wrap.phase-play .cards-col {
+      min-height: 0;
+    }
+    .table-wrap.phase-play .sb-col {
+      gap: 4px;
+    }
+    .table-wrap.phase-play .sb-box {
+      width: 54px;
+      min-height: 56px;
+    }
+    .table-wrap.phase-play .sb-box-label {
+      font-size: 8px;
+    }
+    .table-wrap.phase-play .sb-box-label-213 {
+      font-size: 9px;
+    }
+    .table-wrap.phase-play .action-wager-label {
+      margin-bottom: 1px;
+      font-size: 12px;
+    }
+    .table-wrap.phase-play .bet-bar {
+      margin-top: 0;
+    }
+    .table-wrap.phase-play .bottom-dock {
+      padding-top: 20px;
+      border-top: 1px solid rgba(212, 168, 64, 0.18);
+      box-shadow: inset 0 14px 18px rgba(0, 0, 0, 0.16);
+    }
+    .table-wrap.phase-result .bottom-dock {
+      background: transparent;
+      border-top: none;
+      box-shadow: none;
+    }
+    .table-wrap.phase-result .action-area-fixed {
+      background: transparent;
+    }
+    .table-wrap.phase-play .dealer-pays-line {
+      width: 100%;
+      height: 1px;
+      background: rgba(232, 212, 139, 0.85);
+    }
+    .table-wrap.phase-play .dealer-pays-copy {
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      color: #e8d48b;
+      text-shadow: 0 0 8px rgba(212,168,64,0.18);
+    }
     .felt.single-hand .dealer-area {
       min-height: 96px;
       gap: 6px;
-      padding-top: 0;
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
     .felt.single-hand .dealer-cards-col .card,
     .felt.single-hand .dealer-cards-col .card.small {
@@ -2837,32 +3156,67 @@
       max-width: none;
       align-self: center;
     }
+    .felt.single-hand .cards-col.has-sidebets {
+      --sidebet-center-offset: 0px;
+    }
+    .felt.single-hand .bet-bar {
+      margin-left: 0;
+      transform: none;
+    }
+    .felt.single-hand .ghost-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      width: 100%;
+    }
+    .felt.single-hand .ghost {
+      grid-column: 2;
+      justify-self: center;
+      width: min(200px, calc(100vw - 184px));
+    }
+    .felt.single-hand .ghost-autoplay {
+      grid-column: 3;
+      justify-self: start;
+      margin-left: 10px;
+    }
     .bet-entry-btn    { font-size: 14px; min-width: 60px; min-height: 28px; }
 
+    .mid-zone {
+      height: auto !important;
+      min-height: 40px !important;
+      max-height: none !important;
+      gap: 4px;
+    }
     .divider-row {
       display: flex;
       align-items: center;
-      width: 100%;
+      width: 100vw;
       gap: 10px;
-      margin: 0 auto;
-      padding: 0 8px;
+      margin: 0 calc(50% - 50vw);
+      padding: 0;
     }
     .divider-line {
       flex: 1 1 auto;
       min-width: 0;
       height: 1px;
-      background: rgba(212, 168, 64, 0.45);
+      background: rgba(232, 212, 139, 0.85);
     }
     .divider-label {
-      padding: 0 8px;
+      padding: 0 6px;
       font-family: 'Oswald', sans-serif;
-      font-size: 11px;
+      font-size: 14px;
       font-weight: 700;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #d8b04f;
+      color: #e8d48b;
       white-space: nowrap;
-      text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 8px rgba(212,168,64,0.14);
+    }
+    .divider-copy {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      color: #e8d48b;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 8px rgba(212,168,64,0.14);
     }
 
     /* Panels — smaller text so they don't crowd the screen */
