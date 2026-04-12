@@ -2600,10 +2600,7 @@
     .table-wrap.phase-result-two-hand {
       --vertical-guide-offset: 0px;
     }
-    .table-wrap.phase-bet::after,
-    .table-wrap.phase-play-single-hand::after,
-    .table-wrap.phase-result-single-hand::after,
-    .table-wrap.phase-result-two-hand::after {
+    .table-wrap.phase-play-single-hand::after {
       content: "";
       position: absolute;
       top: 0;
@@ -2622,12 +2619,6 @@
       box-shadow: 0 0 2px rgba(212, 168, 64, 0.24);
       pointer-events: none;
       z-index: 3;
-    }
-    .table-wrap.phase-result-single-hand::after {
-      z-index: 5;
-    }
-    .table-wrap.phase-result-two-hand::after {
-      z-index: 5;
     }
     .table-wrap.phase-bet .bottom-dock,
     .table-wrap.phase-bet .balance-row,
