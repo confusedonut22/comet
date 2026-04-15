@@ -3890,8 +3890,8 @@
 
   /* Final anchor-triad lock: phase-result-two-hand only */
   .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
-    transform: translateY(-10px) !important;
-    margin-bottom: -14px !important;
+    transform: none !important;
+    margin-bottom: 0 !important;
   }
   .table-wrap.phase-result-two-hand .mid-zone .divider-copy {
     transform: translateY(-9px) !important;
@@ -3907,10 +3907,18 @@
   }
   .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets {
     --sidebet-center-offset: 0px !important;
-    transform: none !important;
+    transform: translateX(-26px) !important;
   }
   .table-wrap.phase-result-two-hand .hands-row.two .cards-row {
-    margin: 0 !important;
+    transform: none !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
+    transform: translateY(25px) !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
+    transform: translateY(35px) !important;
   }
 
   /* Mobile geometry scale lock (90% of current) */
