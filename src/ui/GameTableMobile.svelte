@@ -846,7 +846,11 @@
                   {#each hand.cards as card, i}
                     <div class="card-wrap" style="margin-left: {i > 0 ? (multi ? cardOverlapSmall : cardOverlap) : '0'}; z-index: {i}">
                       {#if customFaceCardImage(card)}
-                        <div class="card card-custom" class:small={multi && !isDesktop}>
+                        <div
+                          class="card card-custom"
+                          class:small={multi && !isDesktop}
+                          class:jack-clubs-custom={card.rank === 'J' && card.suit === 'clubs'}
+                        >
                           <img src={customFaceCardImage(card)} alt={`${card.rank} of ${card.suit}`} class="card-custom-art" />
                         </div>
                       {:else}
@@ -1769,6 +1773,12 @@
     text-shadow:
       0 1px 0 rgba(0,0,0,0.46),
       0 0 6px rgba(4, 24, 14, 0.48);
+  }
+  .table-wrap.phase-play.phase-play-single-hand .divider-copy {
+    transform: translateY(-15px);
+  }
+  .table-wrap.phase-play:not(.phase-play-single-hand) .divider-copy {
+    transform: translateY(-37px);
   }
   .divider-result-msg {
     display: flex;
@@ -2710,6 +2720,12 @@
     .table-wrap.phase-bet .hands-row.two .hand-col:last-of-type {
       transform: translateY(90px);
     }
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
+      transform: translateY(25px);
+    }
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
+      transform: translateY(35px);
+    }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
       margin: 0 auto;
@@ -3083,6 +3099,10 @@
       transform-origin: center center;
       transform: scale(1.08);
     }
+    .table-wrap.phase-play .hands-row.multi .card.card-custom.jack-clubs-custom .card-custom-art,
+    .table-wrap.phase-result .hands-row.multi .card.card-custom.jack-clubs-custom .card-custom-art {
+      transform: scale(1);
+    }
     .felt.single-hand .card-custom-art {
       transform-origin: center center;
       transform: scale(1.03);
@@ -3156,12 +3176,21 @@
       z-index: 1;
       pointer-events: none;
     }
+    .table-wrap.phase-play:not(.phase-play-single-hand) .hand-value {
+      margin: 0;
+      font-size: 13px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
     .table-wrap.phase-play .dealer-cards-col {
       transform: none;
       width: 100%;
       align-items: center;
       gap: 6px;
       margin-top: 0;
+    }
+    .table-wrap.phase-play:not(.phase-play-single-hand) .dealer-cards-col {
+      gap: 5px;
     }
     .table-wrap.phase-play .dealer-cards-col .card,
     .table-wrap.phase-play .dealer-cards-col .card.small {
@@ -3218,6 +3247,9 @@
       position: relative;
       z-index: 2;
     }
+    .table-wrap.phase-play:not(.phase-play-single-hand) .dealer-pays-copy {
+      transform: translateY(-12px);
+    }
     .table-wrap.phase-play .mid-zone {
       display: none;
     }
@@ -3256,6 +3288,8 @@
     .table-wrap.phase-play .action-wager-label {
       margin-bottom: 0;
       font-size: 12px;
+      color: #ffffff;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.42);
     }
     .table-wrap.phase-play .bet-bar {
       margin-top: 0;
@@ -3499,6 +3533,12 @@
       transform: none;
       align-self: center;
     }
+    .table-wrap.phase-play-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+      font-size: 14px;
+      padding: 2px 11px;
+      border-radius: 10px;
+    }
     .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
       transform: translateX(26px);
     }
@@ -3652,7 +3692,7 @@
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-two-hand .hands-row.two .bet-bar {
-      transform: translateX(34px) scale(0.8) !important;
+      transform: translateX(28px) scale(0.8) !important;
       transform-origin: center top !important;
       margin-left: 0 !important;
       align-self: center !important;
@@ -3850,18 +3890,27 @@
 
   /* Final anchor-triad lock: phase-result-two-hand only */
   .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
-    transform: translateY(-18px) !important;
+    transform: translateY(-10px) !important;
     margin-bottom: -14px !important;
   }
   .table-wrap.phase-result-two-hand .mid-zone .divider-copy {
     transform: translateY(-9px) !important;
   }
   .table-wrap.phase-result-two-hand .hands-row.two .sb-and-cards {
-    gap: 0 !important;
+    width: fit-content !important;
+    gap: 1px !important;
+    margin: 0 auto !important;
   }
   .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
-    transform: translateX(58px) !important;
+    transform: translateX(10px) !important;
     margin-right: 0 !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets {
+    --sidebet-center-offset: 0px !important;
+    transform: none !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .cards-row {
+    margin: 0 !important;
   }
 
   /* Mobile geometry scale lock (90% of current) */
