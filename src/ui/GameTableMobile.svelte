@@ -18,10 +18,10 @@
   import INTRO_VIDEO from "../assets/chad_labs_intro_powergrid_v7.mp4";
   import INTRO_VIDEO_MOBILE from "../assets/chad_labs_intro_powergrid_v7_mobile.mp4";
   import AUTOPLAY_BUTTON from "../assets/autoplaybutton.png";
-  import KING_SPADES_CHADJACK from "../assets/custom-face-cards/king-spades-chadjack.png";
-  import KING_HEARTS_CHADJACK from "../assets/custom-face-cards/king-hearts-chadjack.png";
-  import KING_CLUBS_CHADJACK from "../assets/custom-face-cards/king-clubs-chadjack.png";
-  import KING_DIAMONDS_CHADJACK from "../assets/custom-face-cards/king-diamonds-chadjack.png";
+  import JACK_SPADES_CHADJACK from "../assets/custom-face-cards/jack-spades-chadjack.png";
+  import JACK_HEARTS_CHADJACK from "../assets/custom-face-cards/jack-hearts-chadjack.png";
+  import JACK_CLUBS_CHADJACK from "../assets/custom-face-cards/jack-clubs-chadjack.png";
+  import JACK_DIAMONDS_CHADJACK from "../assets/custom-face-cards/jack-diamonds-chadjack.png";
 
   // ─── FORMAT ───
   const AUTO_MODES = [
@@ -200,11 +200,11 @@
   }
 
   function customFaceCardImage(card) {
-    if (card?.rank !== "K") return null;
-    if (card?.suit === "spades") return KING_SPADES_CHADJACK;
-    if (card?.suit === "hearts") return KING_HEARTS_CHADJACK;
-    if (card?.suit === "clubs") return KING_CLUBS_CHADJACK;
-    if (card?.suit === "diamonds") return KING_DIAMONDS_CHADJACK;
+    if (card?.rank !== "J") return null;
+    if (card?.suit === "spades") return JACK_SPADES_CHADJACK;
+    if (card?.suit === "hearts") return JACK_HEARTS_CHADJACK;
+    if (card?.suit === "clubs") return JACK_CLUBS_CHADJACK;
+    if (card?.suit === "diamonds") return JACK_DIAMONDS_CHADJACK;
     return null;
   }
 
@@ -2704,6 +2704,12 @@
       justify-content: center;
       align-items: center;
     }
+    .table-wrap.phase-bet .hands-row.two .hand-col:first-of-type {
+      transform: translateY(50px);
+    }
+    .table-wrap.phase-bet .hands-row.two .hand-col:last-of-type {
+      transform: translateY(90px);
+    }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
       margin: 0 auto;
@@ -3638,7 +3644,7 @@
     }
     .table-wrap.phase-bet .hands-row.two .sb-col,
     .table-wrap.phase-result .hands-row.two .sb-col {
-      transform: translateX(50px) !important;
+      transform: translateX(65px) !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(26px) !important;
