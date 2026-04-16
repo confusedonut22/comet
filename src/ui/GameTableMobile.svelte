@@ -114,7 +114,7 @@
   $: isReplay = $replayMode;
   $: isSocial = $sessionQuery.social || $runtimeJurisdiction?.socialCasino === true;
   $: autoplayDisabled = $runtimeJurisdiction?.disabledAutoplay === true;
-  $: showMobileAutoplay = !autoplayDisabled && !isBet;
+  $: showMobileAutoplay = !autoplayDisabled && (isBet || isResult);
   $: showRtp = $runtimeJurisdiction?.displayRTP !== false;
   $: availableSpeeds = Object.entries(SPEEDS).filter(([k]) => {
     if (k === '5x' && $runtimeJurisdiction?.disabledTurbo) return false;
@@ -192,11 +192,17 @@
   }
 
   function handMsg(h) {
-    // Always show hand value, never per-hand result label
     const v = handValue(h.cards);
     if (v === 21 && h.cards?.length === 2) return 21;
     if (isSoft(h.cards) && v <= 21) return `${v - 10}/${v}`;
     return v;
+  }
+
+  function mobileResultLabel(message) {
+    if (message === "You Win!") return "PLAYER";
+    if (message === "Dealer Wins") return "DEALER";
+    if (message === "Push") return "PUSH";
+    return message;
   }
 
   function customFaceCardImage(card) {
@@ -297,8 +303,26 @@
   let showFeltPanel = false;
   let showOptionsMenu = false;
   let feltEl;
+  let ghostRowEl;
+  let fixedAutoplayEl;
+  let fixedAutoplayTop = null;
   let soundMuted = false;
   let feltTheme = "felt-green";
+
+  function syncFixedAutoplayPosition() {
+    if (typeof window === "undefined" || isDesktop || !showMobileAutoplay || !ghostRowEl || !fixedAutoplayEl) {
+      fixedAutoplayTop = null;
+      return;
+    }
+    const ghostEl = ghostRowEl.querySelector(".ghost");
+    if (!ghostEl) {
+      fixedAutoplayTop = null;
+      return;
+    }
+    const ghostBox = ghostEl.getBoundingClientRect();
+    const autoBox = fixedAutoplayEl.getBoundingClientRect();
+    fixedAutoplayTop = Math.round(((ghostBox.top + ghostBox.bottom) / 2) - (autoBox.height / 2));
+  }
 
   function onToggleMute(event) {
     event?.stopPropagation?.();
@@ -450,6 +474,7 @@
 
     if (typeof window !== "undefined") {
       window.addEventListener("focus", handleWindowFocus);
+      window.addEventListener("resize", syncFixedAutoplayPosition);
     }
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -458,6 +483,7 @@
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener("focus", handleWindowFocus);
+        window.removeEventListener("resize", syncFixedAutoplayPosition);
       }
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -467,6 +493,12 @@
 
   onDestroy(() => {
     if (sessionClock) clearInterval(sessionClock);
+  });
+
+  afterUpdate(() => {
+    if (typeof window !== "undefined") {
+      requestAnimationFrame(syncFixedAutoplayPosition);
+    }
   });
 </script>
 
@@ -838,7 +870,11 @@
                   {/each}
                 </div>
                 {/if}
-                <div class="cards-row" style="min-height: {cardsRowMinH}px; position: relative;">
+                <div
+                  class="cards-row"
+                  class:active-bet-outline={isActive && multi && !isDesktop}
+                  style="min-height: {cardsRowMinH}px; position: relative;"
+                >
                 {#if (isBet || isResult) && !isReplay && $numSlots > 1}
                   <button class="btn-remove-x" on:click={() => removeSlot(idx)}>×</button>
                 {/if}
@@ -948,16 +984,15 @@
       {/each}
 
       <!-- Add hand ghost -->
-      {#if (isBet || isResult) && !isReplay && $numSlots < $maxHands}
+      {#if (isBet || isResult) && !isReplay && ($numSlots < $maxHands || showMobileAutoplay)}
         <div class="ghost-wrap">
-          <div class="ghost-row">
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="ghost" on:click={onAddSlot}>+</div>
-            {#if showMobileAutoplay}
-              <button class="btn-autoplay-image ghost-autoplay" type="button" aria-label="Autoplay" on:click={toggleAutoPanel}>
-                <img src={AUTOPLAY_BUTTON} alt="" />
-              </button>
+          <div class="ghost-row" bind:this={ghostRowEl}>
+            {#if $numSlots < $maxHands}
+              <!-- svelte-ignore a11y-click-events-have-key-events -->
+              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <div class="ghost" on:click={onAddSlot}>+</div>
+            {:else}
+              <div class="ghost ghost-placeholder" aria-hidden="true"></div>
             {/if}
           </div>
         </div>
@@ -968,12 +1003,25 @@
 
   </div>
 
+  {#if showMobileAutoplay && !isReplay}
+    <button
+      bind:this={fixedAutoplayEl}
+      class="btn-autoplay-image fixed-autoplay-button"
+      type="button"
+      aria-label="Autoplay"
+      on:click={toggleAutoPanel}
+      style={fixedAutoplayTop !== null ? `top: ${fixedAutoplayTop}px;` : undefined}
+    >
+      <img src={AUTOPLAY_BUTTON} alt="" />
+    </button>
+  {/if}
+
   <!-- BOTTOM DOCK -->
   <div class="bottom-dock" on:click={stopEvent}>
 
       <!-- Auto panel -->
       {#if $showAuto && !autoplayDisabled}
-        <div class="panel" on:click={stopEvent}>
+        <div class="panel autoplay-panel" on:click={stopEvent}>
           <div class="panel-label">Mode</div>
           <div class="mode-row">
             {#each AUTO_MODES as mode}
@@ -1015,7 +1063,7 @@
 
       {#if isPlay}
         {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
-        <div class="action-wager-label">{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
+        <div class="action-wager-label" class:multi-play-wager={isPlay && $numSlots > 1}>{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
       {/if}
       <!-- Action area: stop bar replaces grid during autoplay, both same fixed height -->
       <div class="action-area-fixed">
@@ -1032,7 +1080,7 @@
       </div>
       {#if $message && isResult}
         <div class="action-result-msg">
-          <span class="nav-result-text" class:win={$message === 'You Win!' || $message === 'Push'} class:lose={$message === 'Dealer Wins'}>{$message}</span>
+          <span class="nav-result-text mobile-result-text">{mobileResultLabel($message)}</span>
         </div>
       {/if}
 
@@ -2090,27 +2138,28 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 3px 8px;
-    border-radius: 16px;
-    background: rgba(7, 33, 22, 0.94);
+    min-height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.88);
     border: 1px solid rgba(232, 212, 139, 0.26);
 
   }
   .bet-amount-prefix {
     position: absolute;
     left: 8px;
-    font-size: 14px;
+    font-size: 11px;
     color: #f2e8d0;
     pointer-events: none;
   }
   .bet-amount-input {
-    width: 92px;
+    width: 64px;
     border: none;
     outline: none;
     background: transparent;
     color: #f2e8d0;
     font-family: 'Oswald', sans-serif;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 600;
     text-align: center;
     letter-spacing: 0.02em;
@@ -2223,6 +2272,13 @@
     display: block;
     width: 100%;
     height: auto;
+  }
+  .fixed-autoplay-button {
+    position: fixed;
+    right: 18px;
+    top: 0;
+    width: 54px;
+    z-index: 31;
   }
   .ghost {
     width: 104px; height: 146px; border-radius: 8px;
@@ -2406,6 +2462,62 @@
     font-size: 21px; font-weight: 700; background: #4caf50; color: #fff;
   }
   .btn-auto-toggle.stop { background: #ef5350; }
+  .autoplay-panel {
+    background:
+      linear-gradient(180deg, rgba(18, 24, 20, 0.96) 0%, rgba(10, 14, 12, 0.98) 100%);
+    border: 1px solid rgba(212, 168, 64, 0.28);
+    border-radius: 14px;
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 232, 176, 0.08);
+    backdrop-filter: blur(10px);
+  }
+  .autoplay-panel .panel-label {
+    color: #ffffff;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .autoplay-panel .panel-hint {
+    color: rgba(255, 255, 255, 0.82);
+    opacity: 1;
+  }
+  .autoplay-panel .btn-mode,
+  .autoplay-panel .btn-speed {
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.2);
+    background: rgba(255, 255, 255, 0.02);
+    color: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .autoplay-panel .btn-mode.active,
+  .autoplay-panel .btn-speed.active {
+    border-color: rgba(212, 168, 64, 0.7);
+    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%);
+    color: #fff4cf;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 235, 173, 0.18),
+      0 0 0 1px rgba(212, 168, 64, 0.08);
+  }
+  .autoplay-panel .rounds-ctrl button {
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.24);
+    background: rgba(255,255,255,0.04);
+    color: #ffffff;
+  }
+  .autoplay-panel .rounds-ctrl span {
+    color: #ffffff;
+  }
+  .autoplay-panel .btn-auto-toggle {
+    border-radius: 999px;
+    background: linear-gradient(180deg, #d6af48 0%, #9d7420 100%);
+    color: #120f07;
+    box-shadow: inset 0 1px 0 rgba(255, 241, 198, 0.3);
+  }
+  .autoplay-panel .btn-auto-toggle.stop {
+    background: linear-gradient(180deg, #e36f56 0%, #b93d2e 100%);
+    color: #fff4ef;
+  }
 
   /* ABOUT */
   .about-panel { max-height: min(34vh, 320px); overflow-y: auto; }
@@ -2518,9 +2630,13 @@
     .ghost-spacer { width: 97px; }
     .cards-col { min-width: 97px; }
 
-    .divider-label,
-    .action-wager-label {
+    .divider-label {
       color: #d8b04f;
+      opacity: 1;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+    }
+    .action-wager-label {
+      color: #ffffff;
       opacity: 1;
       text-shadow: 0 1px 0 rgba(0,0,0,0.35);
     }
@@ -2613,7 +2729,7 @@
       --vertical-guide-offset: 0px;
     }
     .table-wrap.phase-play-single-hand::after {
-      content: "";
+      content: none;
       position: absolute;
       top: 0;
       bottom: 0;
@@ -2803,6 +2919,30 @@
       gap: 4px;
       padding-top: 8px;
     }
+    .hands-row.multi.split-row .card.small,
+    .hands-row.multi.split-row .card-placeholder,
+    .hands-row.multi.split-row .card-placeholder.small {
+      width: 58px;
+      height: 95px;
+      border-radius: 6px;
+    }
+    .hands-row.multi.split-row .card.small .card-tl {
+      top: 5px;
+      left: 6px;
+    }
+    .hands-row.multi.split-row .card.small .card-br {
+      bottom: 5px;
+      right: 6px;
+    }
+    .hands-row.multi.split-row .card.small .card-rank {
+      font-size: 11px;
+    }
+    .hands-row.multi.split-row .card.small .card-suit-sm {
+      font-size: 9px;
+    }
+    .hands-row.multi.split-row .card.small .card-center {
+      font-size: 22px;
+    }
     .hand-col { width: 100%; align-items: center; }
     .hands-row.multi.split-row .hand-col {
       width: auto;
@@ -2869,12 +3009,18 @@
       height: 54px;
       border-radius: 16px;
     }
+    .ghost-placeholder {
+      visibility: hidden;
+      pointer-events: none;
+    }
     .ghost-autoplay {
       width: 88px;
       flex: 0 0 auto;
     }
-    .table-wrap.phase-bet .ghost-autoplay {
-      display: none;
+    .fixed-autoplay-button {
+      right: 18px;
+      top: 0;
+      width: 54px;
     }
     .mobile-autoplay-launch {
       display: flex;
@@ -3287,8 +3433,13 @@
     }
     .table-wrap.phase-play .action-wager-label {
       margin-bottom: 0;
-      font-size: 12px;
+      font-size: 15.9px;
       color: #ffffff;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.42);
+    }
+    .table-wrap.phase-play-single-hand .action-wager-label {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff;
       text-shadow: 0 1px 0 rgba(0,0,0,0.42);
     }
     .table-wrap.phase-play .bet-bar {
@@ -3533,7 +3684,16 @@
       transform: none;
       align-self: center;
     }
-    .table-wrap.phase-play-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+    .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+      font-size: 12px;
+      padding: 1px 8px;
+      border-radius: 10px;
+    }
+    .table-wrap.phase-play-single-hand .hv-bubble {
+      font-size: 14.4px;
+      padding: 1px 11px;
+      border-radius: 10px;
+    }
     .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
       font-size: 14px;
       padding: 2px 11px;
@@ -3544,7 +3704,7 @@
     }
     .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .bet-bar {
-      transform: translateX(26px) scale(0.8);
+      transform: translate(18px, -12px) scale(0.8);
       transform-origin: center top;
       align-self: center;
     }
@@ -3564,12 +3724,12 @@
     .table-wrap.phase-result .felt.single-hand .bet-bar {
       margin-left: 0;
       align-self: center;
-      transform: translateX(26px) scale(0.8);
+      transform: translate(18px, -12px) scale(0.8);
       transform-origin: center top;
     }
     .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
-      transform: translateX(34px) scale(0.8);
+      transform: translate(18px, -12px) scale(0.8);
       transform-origin: center top;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
@@ -3966,6 +4126,59 @@
   .table-wrap .hands-row.multi .card-center {
     font-size: calc(36px * var(--mobile-geometry-scale)) !important;
   }
+
+  /* Split-hand cards must beat the global mobile geometry lock */
+  .table-wrap .hands-row.multi.split-row .card.small,
+  .table-wrap .hands-row.multi.split-row .card-placeholder,
+  .table-wrap .hands-row.multi.split-row .card-placeholder.small {
+    width: 52px !important;
+    height: 88px !important;
+    border-radius: 6px !important;
+  }
+  .table-wrap .hands-row.multi.split-row .card.small .card-tl {
+    top: 4px !important;
+    left: 5px !important;
+  }
+  .table-wrap .hands-row.multi.split-row .card.small .card-br {
+    bottom: 4px !important;
+    right: 5px !important;
+  }
+  .table-wrap .hands-row.multi.split-row .card.small .card-rank {
+    font-size: 10px !important;
+  }
+  .table-wrap .hands-row.multi.split-row .card.small .card-suit-sm {
+    font-size: 8px !important;
+  }
+  .table-wrap .hands-row.multi.split-row .card.small .card-center {
+    font-size: 20px !important;
+  }
+  .table-wrap.phase-result .hands-row.split-row .hand-col {
+    transform: none !important;
+    width: auto !important;
+    flex: 0 1 auto !important;
+  }
+  .table-wrap.phase-result .hands-row.split-row .sb-and-cards {
+    width: fit-content !important;
+    gap: 2px !important;
+    margin: 0 auto !important;
+  }
+  .table-wrap.phase-result .hands-row.split-row .sb-col {
+    flex-basis: 36px !important;
+    width: 36px !important;
+    gap: 2px !important;
+    transform: none !important;
+    margin-right: 0 !important;
+  }
+  .table-wrap.phase-result .hands-row.split-row .cards-col.has-sidebets {
+    --sidebet-center-offset: 0px !important;
+    transform: none !important;
+  }
+  .table-wrap.phase-result .hands-row.split-row .cards-row {
+    width: fit-content !important;
+    transform: none !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+  }
   .table-wrap.phase-play .dealer-area {
     min-height: calc(168px * var(--mobile-geometry-scale));
     flex-basis: calc(168px * var(--mobile-geometry-scale));
@@ -4017,5 +4230,53 @@
   @keyframes glow {
     0%, 100% { box-shadow: 0 0 4px rgba(212,168,64,0.2); }
     50%       { box-shadow: 0 0 14px rgba(212,168,64,0.4); }
+  }
+
+  @media (max-width: 767px) {
+    .action-wager-label {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff;
+      font-size: 15.9px;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.42);
+    }
+
+    .action-wager-label.multi-play-wager {
+      transform: translateY(5px);
+    }
+
+    .table-wrap.phase-play-single-hand .hv-bubble {
+      font-size: 14.4px;
+      padding: 1px 11px;
+      border-radius: 10px;
+    }
+
+    .action-result-msg .mobile-result-text {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #e8d48b;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 10px rgba(212,168,64,0.12);
+    }
+
+    .table-wrap.phase-play:not(.phase-play-single-hand) .cards-row.active-bet-outline::after {
+      content: "";
+      position: absolute;
+      inset: -6px -6px -6px -6px;
+      border: 2px solid rgba(232, 212, 139, 0.98);
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(120, 84, 10, 0.28) inset,
+        0 0 12px rgba(232, 212, 139, 0.34);
+      pointer-events: none;
+      z-index: 12;
+    }
+    .table-wrap.phase-play .hands-row.split-row .cards-row.active-bet-outline::after {
+      inset: 0;
+      border-radius: 6px;
+      border-width: 1.5px;
+      box-shadow:
+        0 0 0 1px rgba(120, 84, 10, 0.18) inset,
+        0 0 6px rgba(232, 212, 139, 0.18);
+    }
   }
 </style>
