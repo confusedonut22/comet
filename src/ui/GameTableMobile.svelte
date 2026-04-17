@@ -198,6 +198,22 @@
     return v;
   }
 
+  function playerCardMargin(i) {
+    if (i === 0) return "0";
+    const baseOverlap = Number.parseFloat(multi ? cardOverlapSmall : cardOverlap);
+    if (isDesktop || !(isPlay || isResult) || Number.isNaN(baseOverlap)) {
+      return i > 0 ? (multi ? cardOverlapSmall : cardOverlap) : "0";
+    }
+    return "-54px";
+  }
+
+  function dealerCardMargin(i) {
+    if (i === 0) return "0";
+    const baseOverlap = Number.parseFloat(dealerOverlap);
+    if (isDesktop || !(isPlay || isResult) || Number.isNaN(baseOverlap)) return dealerOverlap;
+    return "-54px";
+  }
+
   function mobileResultLabel(message) {
     if (message === "You Win!") return "PLAYER";
     if (message === "Dealer Wins") return "DEALER";
@@ -754,7 +770,7 @@
           <div class="hand-value">{dealerDisplay}</div>
           <div class="cards-row">
             {#each $dealerHand as card, i}
-              <div class="card-wrap" style="margin-left: {i > 0 ? dealerOverlap : '0'}; z-index: {i}">
+              <div class="card-wrap" style="margin-left: {dealerCardMargin(i)}; z-index: {i}">
                 {#if (isPlay || isIns) && i === 1}
                   <div class="card card-hidden">
                     <img src={CARD_BACK_IMAGE} alt="" class="card-back-logo" />
@@ -814,10 +830,11 @@
         <div class="ghost-spacer"></div>
       {/if}
 
-      {#each row as { hand, idx }}
+      {#each row as { hand, idx }, rowHandIdx}
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
+        {@const canEditBetHand = !(useSplitRows && (hand.isSplit || hand.isAceSplit) && rowHandIdx > 0)}
         <div class="hand-col">
 
           <!-- Cards area -->
@@ -832,7 +849,7 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
+                {#if canEditBetHand && (isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0)}
                 <div class="sb-col">
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -875,12 +892,12 @@
                   class:active-bet-outline={isActive && multi && !isDesktop}
                   style="min-height: {cardsRowMinH}px; position: relative;"
                 >
-                {#if (isBet || isResult) && !isReplay && $numSlots > 1}
+                {#if canEditBetHand && (isBet || isResult) && !isReplay && $numSlots > 1}
                   <button class="btn-remove-x" on:click={() => removeSlot(idx)}>×</button>
                 {/if}
                 {#if hand.cards.length > 0}
                   {#each hand.cards as card, i}
-                    <div class="card-wrap" style="margin-left: {i > 0 ? (multi ? cardOverlapSmall : cardOverlap) : '0'}; z-index: {i}">
+                    <div class="card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}">
                       {#if customFaceCardImage(card)}
                         <div
                           class="card card-custom"
@@ -915,7 +932,7 @@
 
 
               <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
-              {#if hand.bet > 0 || isBet || isResult}
+              {#if canEditBetHand && (hand.bet > 0 || isBet || isResult)}
                 <div class="bet-bar">
                   {#if (isBet || isResult) && !isReplay && !activeSb}
                     <div class="bet-amount-row bet-amount-row-with-actions">
@@ -943,7 +960,7 @@
               {/if}
 
               <!-- Chip buttons -->
-              {#if (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
+              {#if canEditBetHand && (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
                 <div class="chip-btns">
                   {#if !activeSb && $runtimeConfig?.betLevels?.length}
                     {#each $runtimeConfig.betLevels as betLevel}
@@ -1086,7 +1103,7 @@
 
       <!-- Deal button -->
       {#if (isBet || isResult) && !isReplay}
-        <div class="center-deal-wrap">
+        <div class="center-deal-wrap" class:short-gold-bar={isBet || isResult}>
           <button
             class="btn-deal"
             class:active={$canDeal || isResult}
@@ -2811,6 +2828,10 @@
     .hands-stack.split-stack .hands-row:first-child {
       padding-top: 8px;
     }
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row:first-child,
+    .table-wrap.phase-result .hands-stack.split-stack .hands-row:first-child {
+      padding-top: 22px;
+    }
     .hands-row.multi { gap: 8px; }
     .hands-row.two {
       display: flex;
@@ -3656,6 +3677,12 @@
       z-index: auto;
       padding-bottom: 0;
     }
+    .center-deal-wrap.short-gold-bar {
+      max-width: 280px;
+    }
+    .center-deal-wrap.short-gold-bar .btn-deal {
+      width: 100%;
+    }
     .action-area-fixed {
       order: 1;
     }
@@ -4258,7 +4285,12 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 10px rgba(212,168,64,0.12);
     }
 
-    .table-wrap.phase-play:not(.phase-play-single-hand) .cards-row.active-bet-outline::after {
+    .table-wrap.phase-play .cards-row.active-bet-outline {
+      width: fit-content;
+      margin: 0 auto;
+    }
+
+    .table-wrap.phase-play .cards-row.active-bet-outline::after {
       content: "";
       position: absolute;
       inset: -6px -6px -6px -6px;
@@ -4277,6 +4309,11 @@
       box-shadow:
         0 0 0 1px rgba(120, 84, 10, 0.18) inset,
         0 0 6px rgba(232, 212, 139, 0.18);
+    }
+    .table-wrap.phase-play .hands-row.split-row .cards-row.active-bet-outline {
+      min-height: unset !important;
+      height: fit-content !important;
+      align-items: flex-start;
     }
   }
 </style>
