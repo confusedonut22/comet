@@ -5,7 +5,7 @@
     phase, balance, dealerHand, hands, activeHand, message, pending,
     numSlots, maxHands, autoPlay, autoSpeed, autoCount, autoMax, autoMode,
     showAuto, showRules, totalCost, canDeal, introOp, rgsStatus, rgsError, runtimeConfig, runtimeJurisdiction,
-    sessionStartedAt, netPosition, runtimeCurrency,
+    sessionStartedAt, netPosition, runtimeCurrency, autoBetEnabled, sideBetsEnabled,
     startIntro, addSlot, removeSlot, addSideBetChip, clearSideBet, setSideBetAmount, addChip, clearBet, setBetLevel, adjustBetByFactor,
     newRound, deal, hit, stand, doubleDown, split, takeInsurance, autoTick, refreshStakeBalance,
   } from "../game/store.js";
@@ -114,7 +114,7 @@
   $: isReplay = $replayMode;
   $: isSocial = $sessionQuery.social || $runtimeJurisdiction?.socialCasino === true;
   $: autoplayDisabled = $runtimeJurisdiction?.disabledAutoplay === true;
-  $: showMobileAutoplay = !autoplayDisabled && (isBet || isResult);
+  $: showMobileAutoplay = $autoBetEnabled && !autoplayDisabled && (isBet || isResult);
   $: showRtp = $runtimeJurisdiction?.displayRTP !== false;
   $: availableSpeeds = Object.entries(SPEEDS).filter(([k]) => {
     if (k === '5x' && $runtimeJurisdiction?.disabledTurbo) return false;
@@ -198,6 +198,13 @@
     return v;
   }
 
+  function mobileResultLabel(message) {
+    if (message === "You Win!") return "PLAYER";
+    if (message === "Dealer Wins") return "DEALER";
+    if (message === "Push") return "PUSH";
+    return message;
+  }
+
   function playerCardMargin(i) {
     if (i === 0) return "0";
     const baseOverlap = Number.parseFloat(multi ? cardOverlapSmall : cardOverlap);
@@ -207,19 +214,15 @@
     return "-54px";
   }
 
-  function dealerCardMargin(i) {
+  function dealerCardMargin(i, cardCount) {
     if (i === 0) return "0";
-    const baseOverlap = Number.parseFloat(dealerOverlap);
-    if (isDesktop || !(isPlay || isResult) || Number.isNaN(baseOverlap)) return dealerOverlap;
-    return "-54px";
+    if (isDesktop) return dealerOverlap;
+    const cardWidth = 92 * 0.9;
+    const extraCards = Math.max(0, cardCount - 2);
+    const visibleWidth = Math.max(20, Math.min(cardWidth - 12, 32 - extraCards * 2));
+    return `-${Math.round((cardWidth - visibleWidth) * 10) / 10}px`;
   }
 
-  function mobileResultLabel(message) {
-    if (message === "You Win!") return "PLAYER";
-    if (message === "Dealer Wins") return "DEALER";
-    if (message === "Push") return "PUSH";
-    return message;
-  }
 
   function customFaceCardImage(card) {
     if (card?.rank !== "J") return null;
@@ -428,6 +431,24 @@
     }
   }
 
+  function toggleAutoBetSetting(event) {
+    event?.stopPropagation?.();
+    const next = !get(autoBetEnabled);
+    autoBetEnabled.set(next);
+    showAuto.set(false);
+    if (!next) autoPlay.set(false);
+  }
+
+  function toggleSideBetsSetting(event) {
+    event?.stopPropagation?.();
+    const next = !get(sideBetsEnabled);
+    sideBetsEnabled.set(next);
+    sbSelect = {};
+    if (!next && isBet) {
+      hands.update((list) => list.map((hand) => ({ ...hand, sb: { pp: 0, t: 0 } })));
+    }
+  }
+
   function stopEvent(event) {
     event?.stopPropagation?.();
   }
@@ -561,30 +582,14 @@
   class:felt-theme-felt-green={feltTheme === "felt-green"}
   class:felt-theme-felt-black={feltTheme === "felt-black"}
 >
-  <!-- BALANCE -->
-  <div class="balance-row">
-    <div class="header-actions" on:click={stopEvent}>
-      <span class="mobile-balance-slot">{fmt($balance, displayCurrency)}</span>
-      <button class="btn-tab btn-options-toggle" class:active={showOptionsMenu || $showRules || showFeltPanel || showAbout} on:click={toggleOptionsMenu}>Options</button>
-    </div>
-    <div class="session-meta">
-      {#if showSessionTimer}
-        <span class="session-pill">
-          <strong>Session</strong> {sessionElapsed}
-        </span>
-      {/if}
-      {#if showNetPosition}
-        <span class="session-pill" class:positive={netPositive} class:negative={netNegative}>
-          <strong>Net</strong> {sessionNet}
-        </span>
-      {/if}
-    </div>
-    {#if $message && isResult && isDesktop}
-      <div class="nav-result-msg">
-        <span class="nav-result-text" class:win={$message === 'You Win!' || $message === 'Push'} class:lose={$message === 'Dealer Wins'}>{$message}</span>
-      </div>
-    {/if}
-  </div>
+  <span class="mobile-balance-pill">{fmt($balance, displayCurrency)}</span>
+  <button
+    class="btn-tab btn-options-toggle mobile-options-launch"
+    class:active={showOptionsMenu || $showRules || showAbout}
+    on:click={toggleOptionsMenu}
+  >
+    Options
+  </button>
 
   {#if $sessionBootstrap.status === "loading"}
     <div class="launch-warning">
@@ -617,44 +622,21 @@
     </div>
   {/if}
 
-  <div class="balance-subrow" on:click={stopEvent}>
-    <div class="balance-meta balance-meta-mobile">
-      <span class="balance">{fmt($balance, displayCurrency)}</span>
-      {#if $rgsStatus === "playing" || $rgsStatus === "round-active"}
-        <span class="rgs-status">RGS {$rgsStatus}</span>
-      {/if}
-    </div>
-  </div>
-
   {#if showOptionsMenu}
-    <div class="mobile-options-drawer" on:click={stopEvent}>
-      <div class="mobile-options-row">
+    <div class="mobile-options-drawer" class:full-panel-open={$showRules || showAbout} on:click={stopEvent}>
+      <div class="mobile-options-column">
+        <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
+          <span class="btn-options-toggle-label">Autobet</span>
+          <span class="options-mini-toggle" aria-hidden="true">{#if $autoBetEnabled}✓{/if}</span>
+        </button>
+        <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$sideBetsEnabled} on:click={toggleSideBetsSetting}>
+          <span class="btn-options-toggle-label">Sidebets</span>
+          <span class="options-mini-toggle" aria-hidden="true">{#if $sideBetsEnabled}✓{/if}</span>
+        </button>
         <button class="btn-tab btn-options-item" class:active={$showRules} on:click={toggleRulesPanel}>Rules</button>
-        <button class="btn-tab btn-options-item" class:active={showFeltPanel} on:click={toggleFeltPanel}>Texture</button>
         <button class="btn-tab btn-options-item btn-mute" class:muted={soundMuted} on:click={onToggleMute}>{soundMuted ? 'Unmute' : 'Sound'}</button>
         <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>About</button>
       </div>
-      {#if showFeltPanel}
-        <div class="panel felt-panel felt-panel-inline" on:click={stopEvent}>
-          <div class="texture-picker">
-            {#each TEXTURE_ROWS as row}
-              <div class="texture-row texture-row-{row.textureKey}">
-                <div class="texture-row-label">{row.textureLabel}</div>
-                {#each row.options as option}
-                  <button
-                    class={`btn-theme texture-option theme-${option.key}`}
-                    class:active={feltTheme === option.key}
-                    on:click={() => applyFeltTheme(option.key)}
-                    aria-label={option.key}
-                  >
-                    <span class="texture-option-swatch" aria-hidden="true"></span>
-                  </button>
-                {/each}
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/if}
       {#if $showRules}
         <div class="panel rules-panel rules-panel-inline" on:click={stopEvent}>
           <div class="panel-title">How To Play</div>
@@ -678,6 +660,106 @@
               <strong>Split</strong> - If your first two cards are the same rank (e.g. two 8s, or two Kings), you can split them into two separate hands. Each hand gets a new card drawn, your {isSocial ? 'play amount' : 'bet'} is duplicated, and you play them out independently. Split Aces receive only one card each and cannot be hit again.
             </div>
           </div>
+          <div class="rules-section"><strong>Blackjack</strong>
+            <div class="rules-text">{isSocial
+              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
+              : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+            }</div>
+          </div>
+          <div class="rules-section"><strong>Insurance</strong>
+            <div class="rules-text">{isSocial
+              ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+              : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+            }</div>
+          </div>
+          <div class="rules-section"><strong>Payouts</strong>
+            <div class="rules-text">
+              Blackjack pays 7:5<br/>
+              Winning hand pays 1:1<br/>
+              Insurance pays 2:1
+            </div>
+          </div>
+          <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
+            <div class="rules-text">{isSocial
+              ? "Side plays are optional extra plays placed before the deal. They're independent from your main hand — you can win a side play and lose your main hand, or vice versa. Side plays are higher risk, higher reward, and have a lower RTP than the base game."
+              : "Side bets are optional extra bets placed before the deal. They're independent from your main hand, you can win a side bet and lose your main hand, or vice versa. Side bets are higher risk, higher reward, and have a lower RTP than the base game."
+            }</div>
+          </div>
+          <div class="rules-section"><strong>Perfect Pairs</strong>
+            <div class="rules-text rules-text-sm">{isSocial
+              ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
+              : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
+            }</div>
+            <table class="payout-table">
+              <tbody>
+                <tr><td>Perfect Pair (25:1)</td><td class="rules-example">Same rank, same suit. Example: two 7s of Hearts.</td></tr>
+                <tr><td>Coloured Pair (12:1)</td><td class="rules-example">Same rank, same color, different suit. Example: 7 of Hearts and 7 of Diamonds.</td></tr>
+                <tr><td>Mixed Pair (6:1)</td><td class="rules-example">Same rank, different color. Example: 7 of Hearts and 7 of Spades.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="rules-section"><strong>21+3</strong>
+            <div class="rules-text rules-text-sm">{isSocial
+              ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
+              : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
+            }</div>
+            <table class="payout-table">
+              <tbody>
+                <tr><td>Suited Trips (100:1)</td><td class="rules-example">All three cards same rank and same suit. Example: three 8s of Clubs.</td></tr>
+                <tr><td>Straight Flush (40:1)</td><td class="rules-example">Three consecutive ranks, all the same suit. Example: 4, 5, 6 of Hearts.</td></tr>
+                <tr><td>Three of a Kind (30:1)</td><td class="rules-example">All three cards same rank, any suits. Example: three Kings.</td></tr>
+                <tr><td>Straight (10:1)</td><td class="rules-example">Three consecutive ranks, any suits. Ace counts high or low.</td></tr>
+                <tr><td>Flush (5:1)</td><td class="rules-example">All three cards same suit, any ranks. Example: any three Diamonds.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="rules-section"><strong>Game Rules</strong>
+            <div class="rules-text">
+              6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
+              Dealer hits soft 17 and stands on hard 17.<br/>
+              Double down available on hard 9, 10, or 11 only.<br/>
+              One card only after doubling. No further hits.<br/>
+              Split available when first two cards share the same rank.<br/>
+              No re-splitting. No double after split.<br/>
+              Split Aces receive one card only and stand automatically.<br/>
+              Maximum starting hands: 4 on desktop, 2 on mobile.
+            </div>
+          </div>
+          <div class="rules-section"><strong>Autoplay Modes</strong>
+            <div class="rules-text">
+              <strong>Conservative</strong> - Lower-variance play. Avoids marginal doubles, stands earlier in riskier spots. Designed to preserve your bankroll over longer sessions.<br/><br/>
+              <strong>Optimal</strong> - Perfect basic strategy for this build. The mathematically strongest mode and the closest thing to ideal play.<br/><br/>
+              <strong>High Roller</strong> - Aggressive action. Leans into doubles and pressure spots for higher volatility, bigger swings, and faster exposure.
+            </div>
+            <table class="payout-table strategy-table">
+              <thead>
+                <tr><th></th><th>Conservative</th><th>Optimal</th><th>High Roller</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Hard 9 double</td><td>Never</td><td>vs 3-6 only</td><td>vs any</td></tr>
+                <tr><td>Hard 10 double</td><td>vs 2-9</td><td>vs 2-9</td><td>vs any</td></tr>
+                <tr><td>Hard 11 double</td><td>vs 2-9</td><td>vs any incl. A</td><td>vs any</td></tr>
+                <tr><td>Soft doubles</td><td>Never</td><td>Full chart</td><td>More aggressive</td></tr>
+                <tr><td>Surrender</td><td>Never</td><td>Yes</td><td>Never</td></tr>
+                <tr><td>Splits</td><td>Aces + 8s only</td><td>Full chart</td><td>Full chart +</td></tr>
+              </tbody>
+            </table>
+          </div>
+          {#if showRtp}
+            <div class="rules-section"><strong>RTP (Return to Player)</strong>
+              <div class="rules-text rtp">{#if isSocial}
+                Blackjack - 97.9%*<br/>
+                Perfect Pairs - 86.4952%<br/>
+                21+3 - 85.7029%<br/><br/>
+                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions.
+              {:else}
+                Blackjack - 97.9%*<br/>
+                Perfect Pairs - 86.4952%<br/>
+                21+3 - 85.7029%<br/><br/>
+                *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
+              {/if}</div>
+            </div>
+          {/if}
         </div>
       {/if}
       {#if showAbout}
@@ -770,7 +852,7 @@
           <div class="hand-value">{dealerDisplay}</div>
           <div class="cards-row">
             {#each $dealerHand as card, i}
-              <div class="card-wrap" style="margin-left: {dealerCardMargin(i)}; z-index: {i}">
+              <div class="card-wrap" style="margin-left: {dealerCardMargin(i, $dealerHand.length)}; z-index: {i}">
                 {#if (isPlay || isIns) && i === 1}
                   <div class="card card-hidden">
                     <img src={CARD_BACK_IMAGE} alt="" class="card-back-logo" />
@@ -830,16 +912,16 @@
         <div class="ghost-spacer"></div>
       {/if}
 
-      {#each row as { hand, idx }, rowHandIdx}
+      {#each row as { hand, idx }}
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const canEditBetHand = !(useSplitRows && (hand.isSplit || hand.isAceSplit) && rowHandIdx > 0)}
-        <div class="hand-col">
+        {@const reserveSideBetLane = isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
+        <div class="hand-col" class:empty-hand={hand.cards.length === 0}>
 
           <!-- Cards area -->
           <div class="cards-area">
-            <div class="cards-col" class:has-sidebets={isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}>
+            <div class="cards-col" class:has-sidebets={reserveSideBetLane}>
               <!-- Hand value bubble -->
               {#if hand.cards.length > 0}
                 <div class="hv-bubble" class:active={isActive} style="color: {hand.result ? rc : C.ac}">
@@ -849,15 +931,15 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if canEditBetHand && (isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0)}
-                <div class="sb-col">
+                {#if reserveSideBetLane}
+                <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled}>
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    {#if (isBet || isResult) && activeSb === sb.k}
+                    {#if $sideBetsEnabled && (isBet || isResult) && activeSb === sb.k}
                       <!-- Expanded: show inline wager input -->
                       <div class="sb-box sb-box-editing" on:click|stopPropagation>
-                        <span class="sb-box-label">{sb.n}</span>
+                        <span class="sb-box-label" class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
                         <input
                           class="sb-wager-input"
                           type="number"
@@ -876,9 +958,9 @@
                       <div
                         class="sb-box"
                         class:sb-active={hand.sb[sb.k] > 0}
-                        on:click={() => !isReplay && (isBet || isResult) && toggleSbSelect(idx, sb.k)}
+                        on:click={() => $sideBetsEnabled && !isReplay && (isBet || isResult) && toggleSbSelect(idx, sb.k)}
                       >
-                        <span class="sb-box-label">{sb.n}</span>
+                        <span class="sb-box-label" class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
                         {#if hand.sb[sb.k] > 0}
                           <span class="sb-box-amt">{fmt(hand.sb[sb.k], displayCurrency)}</span>
                         {/if}
@@ -889,15 +971,14 @@
                 {/if}
                 <div
                   class="cards-row"
-                  class:active-bet-outline={isActive && multi && !isDesktop}
                   style="min-height: {cardsRowMinH}px; position: relative;"
                 >
-                {#if canEditBetHand && (isBet || isResult) && !isReplay && $numSlots > 1}
+                {#if (isBet || isResult) && !isReplay && $numSlots > 1}
                   <button class="btn-remove-x" on:click={() => removeSlot(idx)}>×</button>
                 {/if}
                 {#if hand.cards.length > 0}
                   {#each hand.cards as card, i}
-                    <div class="card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}">
+                    <div class="card-wrap player-live-card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}">
                       {#if customFaceCardImage(card)}
                         <div
                           class="card card-custom"
@@ -932,7 +1013,7 @@
 
 
               <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
-              {#if canEditBetHand && (hand.bet > 0 || isBet || isResult)}
+              {#if hand.bet > 0 || isBet || isResult}
                 <div class="bet-bar">
                   {#if (isBet || isResult) && !isReplay && !activeSb}
                     <div class="bet-amount-row bet-amount-row-with-actions">
@@ -960,7 +1041,7 @@
               {/if}
 
               <!-- Chip buttons -->
-              {#if canEditBetHand && (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
+              {#if (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
                 <div class="chip-btns">
                   {#if !activeSb && $runtimeConfig?.betLevels?.length}
                     {#each $runtimeConfig.betLevels as betLevel}
@@ -1103,7 +1184,7 @@
 
       <!-- Deal button -->
       {#if (isBet || isResult) && !isReplay}
-        <div class="center-deal-wrap" class:short-gold-bar={isBet || isResult}>
+        <div class="center-deal-wrap">
           <button
             class="btn-deal"
             class:active={$canDeal || isResult}
@@ -1305,20 +1386,62 @@
     gap: 8px;
     flex-shrink: 0;
   }
-  .mobile-options-row {
+  .mobile-options-column {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 6px;
   }
   .btn-options-item {
     min-height: 30px !important;
     padding: 6px 8px !important;
     border-radius: 999px !important;
-    border: 1px solid rgba(203, 218, 206, 0.28) !important;
-    background: rgba(11, 31, 20, 0.88) !important;
-    color: rgba(203, 218, 206, 0.8) !important;
+    border: 1px solid rgba(232, 212, 139, 0.2) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    color: #ffffff !important;
     font-size: 12px !important;
     font-weight: 700 !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .btn-options-toggle-pill {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 0;
+    text-align: center;
+  }
+  .btn-options-toggle-label {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+  .options-mini-toggle {
+    width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    background: #050505;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    flex: 0 0 auto;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .btn-options-item.active {
+    border-color: rgba(212, 168, 64, 0.7) !important;
+    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%) !important;
+    color: #fff4cf !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 235, 173, 0.18),
+      0 0 0 1px rgba(212, 168, 64, 0.08);
   }
   .felt-panel-inline,
   .rules-panel-inline,
@@ -2211,6 +2334,10 @@
   .cards-area { position: relative; }
   .sb-and-cards { display: flex; flex-direction: row; align-items: center; gap: 4px; }
   .sb-col     { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+  .sb-col.sb-col-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
   .cards-col  { min-width: 104px; display: flex; flex-direction: column; align-items: center; }
   .cards-col.has-sidebets { --sidebet-center-offset: 0px; }
 
@@ -2540,19 +2667,47 @@
   .about-panel { max-height: min(34vh, 320px); overflow-y: auto; }
   .about-text {
     font-size: 16px;
-    line-height: 1.75;
-    color: rgba(242, 232, 208, 0.72);
-    font-style: italic;
-    font-family: 'Inter', sans-serif;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: normal;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.02em;
   }
 
   /* RULES */
   .rules-panel { max-height: min(34vh, 320px); overflow-y: auto; }
-  .panel-title  { font-size: 25px; font-weight: 700; margin-bottom: 8px; color: #e8d48b; letter-spacing: 0.04em; }
-  .rules-section { margin-bottom: 10px; font-size: 20px; }
-  .rules-text   { margin-left: 8px; margin-top: 4px; font-size: 16px; line-height: 1.6; }
-  .rules-text-sm { font-size: 14px; opacity: 0.75; }
-  .rules-text.rtp { font-size: 14px; opacity: 0.7; }
+  .panel-title  {
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'Oswald', sans-serif;
+  }
+  .rules-section {
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #ffffff;
+    font-family: 'Oswald', sans-serif;
+  }
+  .rules-section strong {
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .rules-text   {
+    margin-left: 8px;
+    margin-top: 4px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .rules-text-sm { font-size: 14px; opacity: 0.82; color: rgba(255,255,255,0.82); }
+  .rules-text.rtp { font-size: 14px; opacity: 0.78; color: rgba(255,255,255,0.78); }
   .payout-table { width: 100%; font-size: 15px; margin-top: 6px; border-collapse: collapse; }
   .payout-table td, .payout-table th { padding: 3px 6px; vertical-align: top; }
   .payout-table td:first-child { font-weight: 600; white-space: nowrap; opacity: 0.9; }
@@ -2705,7 +2860,7 @@
     }
     .table-wrap::before {
       content: "";
-      position: absolute;
+      position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
@@ -2766,27 +2921,33 @@
       z-index: 3;
     }
     .table-wrap.phase-bet .bottom-dock,
-    .table-wrap.phase-bet .balance-row,
-    .table-wrap.phase-bet .balance-subrow,
     .table-wrap.phase-bet .mobile-options-drawer,
+    .table-wrap.phase-bet .mobile-options-launch,
     .table-wrap.phase-play .bottom-dock,
-    .table-wrap.phase-play .balance-row,
-    .table-wrap.phase-play .balance-subrow,
-    .table-wrap.phase-play .mobile-options-drawer {
+    .table-wrap.phase-play .mobile-options-launch {
       position: relative;
       z-index: 4;
     }
-    .table-wrap.phase-bet .balance-row,
-    .table-wrap.phase-play .balance-row,
-    .table-wrap.phase-result .balance-row,
-    .table-wrap.phase-bet .balance-subrow,
-    .table-wrap.phase-play .balance-subrow,
-    .table-wrap.phase-result .balance-subrow,
+    .table-wrap.phase-bet .mobile-options-launch,
+    .table-wrap.phase-play .mobile-options-launch,
+    .table-wrap.phase-result .mobile-options-launch,
     .table-wrap.phase-bet .mobile-options-drawer,
     .table-wrap.phase-play .mobile-options-drawer,
     .table-wrap.phase-result .mobile-options-drawer {
       background: transparent !important;
       backdrop-filter: none !important;
+    }
+    .table-wrap.phase-play .mobile-options-drawer,
+    .table-wrap.phase-result .mobile-options-drawer {
+      position: fixed !important;
+      top: calc(max(6px, env(safe-area-inset-top)) + 40px) !important;
+      right: 12px !important;
+      left: auto !important;
+      width: min(120px, calc(100vw - 24px)) !important;
+      z-index: 46 !important;
+      padding: 4px 0 0 !important;
+      pointer-events: none !important;
+      overflow: visible !important;
     }
 
     /* Hands row takes natural height so felt can scroll past it */
@@ -2828,10 +2989,6 @@
     .hands-stack.split-stack .hands-row:first-child {
       padding-top: 8px;
     }
-    .table-wrap.phase-play .hands-stack.split-stack .hands-row:first-child,
-    .table-wrap.phase-result .hands-stack.split-stack .hands-row:first-child {
-      padding-top: 22px;
-    }
     .hands-row.multi { gap: 8px; }
     .hands-row.two {
       display: flex;
@@ -2858,10 +3015,10 @@
       transform: translateY(90px);
     }
     .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
-      transform: translateY(25px);
+      transform: translateY(60px);
     }
     .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
-      transform: translateY(35px);
+      transform: translateY(50px);
     }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
@@ -3106,10 +3263,11 @@
       z-index: 45;
       display: block;
       min-height: 0;
-      padding: 4px 12px 0;
+      padding: 2px 12px 0;
       background: transparent;
       border-bottom: none;
       pointer-events: none;
+      overflow: visible;
     }
   .header-actions {
     pointer-events: auto;
@@ -3118,6 +3276,7 @@
     justify-content: space-between;
     gap: 10px;
     width: 100%;
+    overflow: visible;
   }
   .mobile-balance-slot {
     display: inline-flex;
@@ -3147,25 +3306,66 @@
     .session-meta {
       display: none;
     }
-  .balance-subrow {
-    position: fixed;
-    top: calc(max(4px, env(safe-area-inset-top)) + 40px);
-    left: 0;
-    right: 0;
-    z-index: 44;
-    padding: 0 12px;
-    background: transparent;
-    pointer-events: none;
-    display: none;
-  }
+    .balance-row,
+    .balance-subrow,
+    .header-actions,
+    .mobile-balance-slot,
+    .session-meta,
     .balance-meta-mobile {
-      pointer-events: auto;
-      justify-content: flex-end;
-      width: 100%;
+      display: none !important;
+    }
+    .mobile-balance-pill {
+      position: fixed;
+      top: max(6px, env(safe-area-inset-top));
+      left: 12px;
+      z-index: 46;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(232, 212, 139, 0.25);
+      background: rgba(10, 30, 19, 0.34);
+      color: #ffffff;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10.24px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: none;
+      backdrop-filter: blur(2px);
+    }
+    .mobile-options-launch {
+      position: fixed;
+      top: max(6px, env(safe-area-inset-top));
+      right: 12px;
+      z-index: 46;
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      width: auto !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      flex: 0 0 auto !important;
+      min-height: 34px !important;
+      padding: 0 12px !important;
+      border-radius: 999px !important;
+      border: 1px solid rgba(232, 212, 139, 0.25) !important;
+      background: rgba(10, 30, 19, 0.34) !important;
+      color: #ffffff !important;
+      font-family: 'Oswald', sans-serif !important;
+      font-size: 10.24px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+      line-height: 1;
+      box-shadow: none !important;
+      backdrop-filter: blur(2px);
     }
     .mobile-options-drawer {
       position: fixed;
-      top: calc(max(4px, env(safe-area-inset-top)) + 72px);
+      top: calc(max(6px, env(safe-area-inset-top)) + 40px);
       right: 12px;
       left: auto;
       width: min(120px, calc(100vw - 24px));
@@ -3174,9 +3374,23 @@
       gap: 6px;
       pointer-events: none;
     }
+    .mobile-options-drawer.full-panel-open {
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      width: 100vw;
+      min-height: 100dvh;
+      padding: max(56px, calc(env(safe-area-inset-top) + 52px)) 12px calc(env(safe-area-inset-bottom) + 12px);
+      background: rgba(4, 16, 10, 0.94);
+      backdrop-filter: blur(10px);
+      justify-content: flex-start;
+      overflow-y: auto;
+      pointer-events: auto;
+    }
     .table-wrap.phase-bet .mobile-options-drawer {
       position: fixed !important;
-      top: calc(max(4px, env(safe-area-inset-top)) + 72px) !important;
+      top: calc(max(6px, env(safe-area-inset-top)) + 40px) !important;
       right: 12px !important;
       left: auto !important;
       width: min(120px, calc(100vw - 24px)) !important;
@@ -3184,16 +3398,57 @@
       padding: 4px 0 0 !important;
       pointer-events: none !important;
     }
-    .mobile-options-row {
+    .table-wrap.phase-bet .mobile-options-drawer.full-panel-open,
+    .table-wrap.phase-play .mobile-options-drawer.full-panel-open,
+    .table-wrap.phase-result .mobile-options-drawer.full-panel-open {
+      top: 0 !important;
+      right: 0 !important;
+      left: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      min-height: 100dvh !important;
+      padding: max(56px, calc(env(safe-area-inset-top) + 52px)) 12px calc(env(safe-area-inset-bottom) + 12px) !important;
+      background: rgba(4, 16, 10, 0.94) !important;
+      backdrop-filter: blur(10px) !important;
+      justify-content: flex-start !important;
+      overflow-y: auto !important;
+      pointer-events: auto !important;
+    }
+    .mobile-options-column {
       display: grid;
       grid-template-columns: 1fr;
       gap: 4px;
       pointer-events: auto;
     }
-    .felt-panel-inline,
+    .mobile-options-drawer.full-panel-open .mobile-options-column {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(4, 16, 10, 0.98) 0%, rgba(4, 16, 10, 0.82) 100%);
+      padding-bottom: 8px;
+    }
     .rules-panel-inline,
     .about-panel-inline {
       pointer-events: auto;
+    }
+    .mobile-options-drawer.full-panel-open .rules-panel-inline,
+    .mobile-options-drawer.full-panel-open .about-panel-inline {
+      width: 100%;
+      max-width: none;
+      flex: 1 1 auto;
+      height: calc(100dvh - max(116px, calc(env(safe-area-inset-top) + 112px)) - env(safe-area-inset-bottom));
+      min-height: calc(100dvh - max(116px, calc(env(safe-area-inset-top) + 112px)) - env(safe-area-inset-bottom));
+      margin-top: 0;
+      padding: 16px 16px 24px;
+      border-radius: 18px;
+      overflow-y: auto;
+      background:
+        linear-gradient(180deg, rgba(18, 24, 20, 0.96) 0%, rgba(10, 14, 12, 0.98) 100%);
+      border: 1px solid rgba(212, 168, 64, 0.28);
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.38),
+        inset 0 1px 0 rgba(255, 232, 176, 0.08);
+      backdrop-filter: blur(10px);
     }
     .btn-options-item,
     .btn-autoplay-cta {
@@ -3215,6 +3470,30 @@
       letter-spacing: 0.02em !important;
       line-height: 1;
       box-shadow: none !important;
+    }
+    .mobile-options-launch.btn-options-toggle {
+      position: fixed !important;
+      top: max(6px, env(safe-area-inset-top)) !important;
+      right: 12px !important;
+      left: auto !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: fit-content !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      white-space: nowrap !important;
+      background: rgba(10, 30, 19, 0.34) !important;
+    }
+    .launch-warning,
+    .replay-banner {
+      position: fixed;
+      top: calc(max(6px, env(safe-area-inset-top)) + 44px);
+      left: 12px;
+      right: 12px;
+      width: auto;
+      margin: 0;
+      z-index: 44;
     }
     .btn-utility {
       font-size: 10px !important;
@@ -3429,6 +3708,10 @@
       gap: 8px;
       min-height: 0;
     }
+    .table-wrap.phase-play-single-hand .hands-stack,
+    .table-wrap.phase-result-single-hand .hands-stack {
+      transform: translateY(40px);
+    }
     .table-wrap.phase-play .hands-row.multi {
       gap: 6px;
     }
@@ -3525,6 +3808,57 @@
     .felt.single-hand .dealer-cards-col .card-rank { font-size: 18px; }
     .felt.single-hand .dealer-cards-col .card-suit-sm { font-size: 15px; }
     .felt.single-hand .dealer-cards-col .card-center { font-size: 36px; }
+    .table-wrap.phase-play-single-hand .hands-row .card,
+    .table-wrap.phase-play-single-hand .hands-row .card.small,
+    .table-wrap.phase-result-single-hand .hands-row .card,
+    .table-wrap.phase-result-single-hand .hands-row .card.small,
+    .table-wrap.phase-play-single-hand .hands-row .card-placeholder,
+    .table-wrap.phase-play-single-hand .hands-row .card-placeholder.small,
+    .table-wrap.phase-result-single-hand .hands-row .card-placeholder,
+    .table-wrap.phase-result-single-hand .hands-row .card-placeholder.small {
+      width: 126px;
+      height: 214px;
+      border-radius: 9px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card::before,
+    .table-wrap.phase-play-single-hand .hands-row .card.small::before,
+    .table-wrap.phase-result-single-hand .hands-row .card::before,
+    .table-wrap.phase-result-single-hand .hands-row .card.small::before {
+      border-radius: 9px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-rank,
+    .table-wrap.phase-result-single-hand .hands-row .card-rank {
+      font-size: 24px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-suit-sm,
+    .table-wrap.phase-result-single-hand .hands-row .card-suit-sm {
+      font-size: 19px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-center,
+    .table-wrap.phase-result-single-hand .hands-row .card-center {
+      font-size: 48px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card,
+    .table-wrap.phase-play-single-hand .hands-row .card.small,
+    .table-wrap.phase-play-single-hand .hands-row .card-placeholder,
+    .table-wrap.phase-play-single-hand .hands-row .card-placeholder.small {
+      width: 158px;
+      height: 268px;
+      border-radius: 10px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card::before,
+    .table-wrap.phase-play-single-hand .hands-row .card.small::before {
+      border-radius: 10px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-rank {
+      font-size: 30px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-suit-sm {
+      font-size: 24px;
+    }
+    .table-wrap.phase-play-single-hand .hands-row .card-center {
+      font-size: 60px;
+    }
     .felt.single-hand .hand-value {
       margin-bottom: 1px;
     }
@@ -3565,6 +3899,9 @@
     .table-wrap.phase-result .felt.single-hand .sb-col {
       margin-right: -1px;
     }
+    .table-wrap.phase-bet .felt.single-hand .sb-col {
+      transform: translateX(9px);
+    }
     .table-wrap.phase-bet .sb-box,
     .table-wrap.phase-bet .sb-box-editing,
     .table-wrap.phase-play .sb-box,
@@ -3573,20 +3910,42 @@
     .table-wrap.phase-result .sb-box-editing {
       width: 40px;
       min-height: 34px;
-      padding: 1px;
+      padding: 0;
       border-width: 1.8px;
       border-radius: 7px;
+      justify-content: flex-start;
+      gap: 1px;
     }
     .table-wrap.phase-bet .sb-box-label,
     .table-wrap.phase-play .sb-box-label,
     .table-wrap.phase-result .sb-box-label {
       font-size: 8px;
-      line-height: 1;
+      line-height: 0.95;
+    }
+    .table-wrap.phase-bet .sb-box-label-213,
+    .table-wrap.phase-play .sb-box-label-213,
+    .table-wrap.phase-result .sb-box-label-213 {
+      font-size: 9px;
+    }
+    .table-wrap.phase-bet .sb-box,
+    .table-wrap.phase-bet .sb-box-editing {
+      width: 36px;
+      min-height: 28px;
+      padding: 0;
     }
     .table-wrap.phase-bet .sb-box-amt,
     .table-wrap.phase-play .sb-box-amt,
     .table-wrap.phase-result .sb-box-amt {
       font-size: 9px;
+    }
+    .table-wrap.phase-bet .sb-box,
+    .table-wrap.phase-bet .sb-box-editing,
+    .table-wrap.phase-play .sb-box,
+    .table-wrap.phase-play .sb-box-editing,
+    .table-wrap.phase-result .sb-box,
+    .table-wrap.phase-result .sb-box-editing {
+      padding-top: 2px;
+      padding-bottom: 0;
     }
 
     /* Make cards fit phone screens more comfortably */
@@ -3654,6 +4013,15 @@
       margin: 0 auto 6px;
       order: 1;
     }
+    .table-wrap.phase-play-single-hand .action-grid {
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(232, 212, 139, 0.24);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 0 0 1px rgba(9, 28, 18, 0.22);
+      background: rgba(8, 22, 14, 0.22);
+    }
     .action-result-msg {
       display: flex;
       justify-content: center;
@@ -3676,12 +4044,6 @@
       margin: 0 auto;
       z-index: auto;
       padding-bottom: 0;
-    }
-    .center-deal-wrap.short-gold-bar {
-      max-width: 280px;
-    }
-    .center-deal-wrap.short-gold-bar .btn-deal {
-      width: 100%;
     }
     .action-area-fixed {
       order: 1;
@@ -3722,12 +4084,10 @@
       border-radius: 10px;
     }
     .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
-      font-size: 14px;
-      padding: 2px 11px;
+      font-size: 14.4px;
+      padding: 1px 11px;
       border-radius: 10px;
-    }
-    .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
-      transform: translateX(26px);
+      transform: none;
     }
     .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .bet-bar {
@@ -3747,6 +4107,10 @@
       justify-content: center;
       margin: 0 auto;
     }
+    .table-wrap.phase-play-single-hand .hands-row,
+    .table-wrap.phase-result-single-hand .hands-row {
+      margin-top: 8px;
+    }
     .table-wrap.phase-bet .felt.single-hand .bet-bar,
     .table-wrap.phase-result .felt.single-hand .bet-bar {
       margin-left: 0;
@@ -3756,8 +4120,10 @@
     }
     .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
-      transform: translate(18px, -12px) scale(0.8);
+      transform: translateX(26px) scale(0.8);
       transform-origin: center top;
+      align-self: center;
+      margin-left: 0;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(34px) !important;
@@ -3765,7 +4131,7 @@
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-two-hand .hands-row.two .bet-bar {
-      transform: translateX(42px) scale(0.8) !important;
+      transform: translate(42px, 0px) scale(0.8) !important;
       transform-origin: center top !important;
       margin-left: 0 !important;
       align-self: center !important;
@@ -3873,13 +4239,25 @@
     .table-wrap.phase-result .hands-row.two .sb-col {
       transform: translateX(65px) !important;
     }
+    .table-wrap.phase-bet .hands-row.two .sb-col {
+      transform: translateX(72px) !important;
+    }
+    .table-wrap.phase-bet .hands-row.two .hand-col:first-of-type .cards-row {
+      transform: translateX(6px) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type .sb-col {
+      transform: translateX(10px) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type .sb-col {
+      transform: translateX(-6px) !important;
+    }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(26px) !important;
       align-self: center !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-two-hand .hands-row.two .bet-bar {
-      transform: translateX(28px) scale(0.8) !important;
+      transform: translate(28px, 0px) scale(0.8) !important;
       transform-origin: center top !important;
       margin-left: 0 !important;
       align-self: center !important;
@@ -3945,6 +4323,10 @@
     .strategy-table th, .strategy-table td { font-size: 11px; }
   .rules-panel    { max-height: min(42vh, 300px); }
   .panel-title    { font-size: 18px; }
+  .mobile-options-drawer.full-panel-open .rules-panel,
+  .mobile-options-drawer.full-panel-open .about-panel {
+    max-height: none;
+  }
   .felt-panel { max-height: min(42vh, 320px); overflow-y: auto; padding: 0; }
   .texture-picker { display: flex; flex-direction: column; gap: 0; }
   .texture-row {
@@ -4074,6 +4456,33 @@
     width: 40px !important;
     margin-right: 0 !important;
   }
+  .table-wrap.phase-play-single-hand .felt.single-hand .cards-row {
+    transform: none !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .cards-row {
+    transform: none !important;
+  }
+  .table-wrap.phase-play-single-hand .felt.single-hand .sb-col {
+    transform: none !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
+    transform: translateX(25px) !important;
+  }
+  .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets,
+  .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets,
+  .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets {
+    min-width: 104px !important;
+  }
+  .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+  .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets .hv-bubble,
+  .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+    transform: none !important;
+    align-self: center !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+    transform: translateX(26px) !important;
+    margin-bottom: 3px !important;
+  }
 
   /* Final anchor-triad lock: phase-result-two-hand only */
   .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
@@ -4083,29 +4492,46 @@
   .table-wrap.phase-result-two-hand .mid-zone .divider-copy {
     transform: translateY(-9px) !important;
   }
+  .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .bet-bar,
+  .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
+    transform: translate(26px, -12px) scale(0.8) !important;
+    transform-origin: center top !important;
+    margin-left: 0 !important;
+    align-self: center !important;
+  }
   .table-wrap.phase-result-two-hand .hands-row.two .sb-and-cards {
-    width: fit-content !important;
-    gap: 1px !important;
-    margin: 0 auto !important;
+    gap: 0 !important;
   }
   .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
-    transform: translateX(10px) !important;
+    transform: translateX(58px) !important;
     margin-right: 0 !important;
   }
-  .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets {
-    --sidebet-center-offset: 0px !important;
-    transform: translateX(-26px) !important;
-  }
-  .table-wrap.phase-result-two-hand .hands-row.two .cards-row {
-    transform: none !important;
+  .table-wrap.phase-result .sb-box,
+  .table-wrap.phase-result .sb-box-editing {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
     justify-content: center !important;
-    margin: 0 auto !important;
+    align-items: center !important;
+    gap: 0 !important;
+    padding: 0 !important;
   }
-  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-    transform: translateY(25px) !important;
+  .table-wrap.phase-result .sb-box-label,
+  .table-wrap.phase-result .sb-box-label-213 {
+    text-align: center !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    width: 100% !important;
   }
-  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-    transform: translateY(35px) !important;
+  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type .sb-col {
+    transform: translateX(83px) !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type .sb-col {
+    transform: translateX(83px) !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .hand-col.empty-hand .sb-col {
+    transform: translateX(56px) !important;
   }
 
   /* Mobile geometry scale lock (90% of current) */
@@ -4210,6 +4636,9 @@
     min-height: calc(168px * var(--mobile-geometry-scale));
     flex-basis: calc(168px * var(--mobile-geometry-scale));
   }
+  .table-wrap.phase-result .dealer-cards-col {
+    transform: none;
+  }
   .table-wrap .felt.single-hand .dealer-area {
     min-height: calc(96px * var(--mobile-geometry-scale));
   }
@@ -4220,6 +4649,54 @@
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+    }
+  }
+
+  @media (max-width: 767px) and (max-height: 700px) {
+    .table-wrap.phase-play .felt {
+      padding-top: 24px;
+    }
+
+    .table-wrap.phase-play .dealer-area {
+      min-height: 152px;
+      flex-basis: 152px;
+      margin-top: -12px;
+      margin-bottom: 2px;
+    }
+
+    .table-wrap.phase-play .dealer-cards-col {
+      gap: 4px;
+    }
+
+    .table-wrap.phase-play .hands-row {
+      margin-top: 4px;
+      gap: 4px;
+    }
+
+    .table-wrap.phase-play .hands-row.two {
+      gap: 12px;
+      padding-top: 6px;
+      padding-bottom: 12px;
+    }
+
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
+      transform: translateY(60px);
+    }
+
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
+      transform: translateY(50px);
+    }
+
+    .table-wrap.phase-play .sb-col {
+      gap: 2px;
+    }
+
+    .table-wrap.phase-play .sb-box {
+      min-height: 46px;
+    }
+
+    .table-wrap.phase-play .action-wager-label {
+      font-size: 14px;
     }
   }
 
@@ -4254,12 +4731,40 @@
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes resultBackReveal {
+    from { opacity: 0; transform: translateY(10px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
   @keyframes glow {
     0%, 100% { box-shadow: 0 0 4px rgba(212,168,64,0.2); }
     50%       { box-shadow: 0 0 14px rgba(212,168,64,0.4); }
   }
 
   @media (max-width: 767px) {
+    .player-live-card-wrap {
+      transition: transform 220ms ease, opacity 220ms ease;
+      transform-origin: top center;
+    }
+
+    .player-result-back-wrap {
+      animation: resultBackReveal 220ms ease both;
+    }
+
+    .player-result-back-wrap-single {
+      display: flex;
+      justify-content: center;
+    }
+
+    .card-result-back {
+      box-shadow:
+        0 3px 12px rgba(0,0,0,0.28),
+        0 0 0 1px rgba(255,255,255,0.04) inset;
+    }
+
+    .table-wrap.phase-play .hands-row.two .cards-row {
+      align-items: flex-start;
+    }
+
     .action-wager-label {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff;
@@ -4285,35 +4790,5 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 10px rgba(212,168,64,0.12);
     }
 
-    .table-wrap.phase-play .cards-row.active-bet-outline {
-      width: fit-content;
-      margin: 0 auto;
-    }
-
-    .table-wrap.phase-play .cards-row.active-bet-outline::after {
-      content: "";
-      position: absolute;
-      inset: -6px -6px -6px -6px;
-      border: 2px solid rgba(232, 212, 139, 0.98);
-      border-radius: 12px;
-      box-shadow:
-        0 0 0 1px rgba(120, 84, 10, 0.28) inset,
-        0 0 12px rgba(232, 212, 139, 0.34);
-      pointer-events: none;
-      z-index: 12;
-    }
-    .table-wrap.phase-play .hands-row.split-row .cards-row.active-bet-outline::after {
-      inset: 0;
-      border-radius: 6px;
-      border-width: 1.5px;
-      box-shadow:
-        0 0 0 1px rgba(120, 84, 10, 0.18) inset,
-        0 0 6px rgba(232, 212, 139, 0.18);
-    }
-    .table-wrap.phase-play .hands-row.split-row .cards-row.active-bet-outline {
-      min-height: unset !important;
-      height: fit-content !important;
-      align-items: flex-start;
-    }
   }
 </style>

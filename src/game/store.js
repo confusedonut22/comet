@@ -63,6 +63,8 @@ let autoLoopTimer = null;
 export const showAuto   = writable(false);
 export const showRules  = writable(false);
 export const showFacts  = writable(false);
+export const autoBetEnabled = writable(true);
+export const sideBetsEnabled = writable(true);
 
 // intro opacity for fade
 export const introOp    = writable(1);
@@ -596,6 +598,8 @@ export function clearBet(idx) {
 
 export function newRound() {
   if (get(replayMode)) return;
+  const keepAutoBet = get(autoBetEnabled);
+  const keepSideBets = get(sideBetsEnabled);
   phase.set(PHASE.BET);
   dealerHand.set([]);
   message.set("");
@@ -608,7 +612,11 @@ export function newRound() {
     // Remove ephemeral split hands; keep only original hands
     const originals = hs.filter(h => !h.isSplit);
     const base = originals.length > 0 ? originals : hs.slice(0, 1);
-    const fresh = base.map(h => makeHand(h.baseBet ?? h.bet, { ...h.sb }));
+    const fresh = base.map(h => {
+      const nextBet = keepAutoBet ? (h.baseBet ?? h.bet) : 0;
+      const nextSideBets = keepSideBets ? { ...h.sb } : { pp: 0, t: 0 };
+      return makeHand(nextBet, nextSideBets);
+    });
     // Sync numSlots to the number of original hands
     numSlots.set(fresh.length);
     return fresh;
