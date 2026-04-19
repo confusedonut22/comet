@@ -3172,16 +3172,28 @@
     }
     /* ── SPLIT LAYOUT ── */
     .hands-stack.split-stack { gap: 14px; }
+    /* Split row: original hand is full-width/centered; split deck is absolutely overlaid */
     .hands-row.split-row {
+      position: relative;
+      overflow: visible;
       flex-wrap: nowrap;
       align-items: flex-start;
       justify-content: center;
-      gap: 10px;
+      gap: 0;
     }
-    /* Cancel any translateY transforms from two-hand layout */
-    .table-wrap .hands-row.split-row .hand-col {
+    /* Original hand stays full-width — no movement, no centering shift */
+    .table-wrap .hands-row.split-row .hand-col:not(.split-right) {
       transform: none !important;
-      flex: 0 0 auto;
+      flex: 0 0 100%;
+      width: 100%;
+    }
+    /* Split deck: taken out of flow, anchored 50px right of the original hand's right card edge */
+    .table-wrap .hands-row.split-row .split-right {
+      position: absolute;
+      left: calc(50% + 100px);
+      top: 0;
+      transform: none !important;
+      flex: none;
       width: auto;
     }
     /* Rows in split-stack don't grow — sit at natural height */
