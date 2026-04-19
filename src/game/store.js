@@ -902,6 +902,7 @@ export function split() {
 
   const h = $hands[$actH];
   if (!h || h.cards.length !== 2) return;
+  if (h.isSplit) return;
   if ($hands.length >= SPLIT_HAND_LIMIT) return;
   if ($balance < h.bet) return;
 

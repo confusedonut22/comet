@@ -171,7 +171,7 @@
     if (soft) return false;
     return total === 9 || total === 10 || total === 11;
   })();
-  $: canSplit  = activeH && activeH.cards.length === 2 && $balance >= activeH.bet && $hands.length < 4 && activeH.cards[0].rank === activeH.cards[1].rank;
+  $: canSplit  = activeH && !activeH.isSplit && activeH.cards.length === 2 && $balance >= activeH.bet && $hands.length < 4 && activeH.cards[0].rank === activeH.cards[1].rank;
   $: isBadBeat = isResult && $message;
   $: dealLabel = $autoPlay ? `Auto ${$autoCount}/${$autoMax}` : isDealer ? "Dealing..." : isIns ? "Insurance..." : isResult ? "Next Hand" : "Deal";
   $: tableControlMode = isDesktop && !isPlay ? 'table' : 'footer';
@@ -959,12 +959,13 @@
         <div class="ghost-spacer"></div>
       {/if}
 
-      {#each row as { hand, idx }}
+      {#each row as { hand, idx }, rowHandIndex}
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const reserveSideBetLane = $sideBetsEnabled}
-        <div class="hand-col" class:empty-hand={hand.cards.length === 0}>
+        {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
+        {@const isSplitRight = useSplitRows && hand.isSplit && rowHandIndex === 1}
+        <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}>
 
           <!-- Cards area -->
           <div class="cards-area">
@@ -1026,7 +1027,7 @@
                 {/if}
                 {#if hand.cards.length > 0}
                   {#each hand.cards as card, i}
-                    <div class="card-wrap player-live-card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}">
+                    <div class="card-wrap player-live-card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}; margin-top: {isSplitRight && i > 0 ? `${i * 8}px` : ''};">
                       {#if customFaceCardImage(card)}
                         <div
                           class="card card-custom"
@@ -3059,16 +3060,6 @@
       right: 0;
       margin: 0;
     }
-    .hands-stack.split-stack {
-      gap: 8px;
-    }
-    .hands-stack.split-stack .hands-row {
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-    .hands-stack.split-stack .hands-row:first-child {
-      padding-top: 8px;
-    }
     .hands-row.multi { gap: 8px; }
     .hands-row.two {
       display: flex;
@@ -3170,42 +3161,37 @@
       margin-bottom: 4px;
       align-self: center;
     }
-    .hands-row.multi.split-row {
+    /* ── SPLIT LAYOUT ── */
+    .hands-stack.split-stack { gap: 14px; }
+    .hands-row.split-row {
       flex-wrap: nowrap;
       align-items: flex-start;
       justify-content: center;
-      gap: 4px;
-      padding-top: 8px;
+      gap: 10px;
     }
-    .hands-row.multi.split-row .card.small,
-    .hands-row.multi.split-row .card-placeholder,
-    .hands-row.multi.split-row .card-placeholder.small {
-      width: 58px;
-      height: 95px;
-      border-radius: 6px;
-    }
-    .hands-row.multi.split-row .card.small .card-tl {
-      top: 5px;
-      left: 6px;
-    }
-    .hands-row.multi.split-row .card.small .card-br {
-      bottom: 5px;
-      right: 6px;
-    }
-    .hands-row.multi.split-row .card.small .card-rank {
-      font-size: 11px;
-    }
-    .hands-row.multi.split-row .card.small .card-suit-sm {
-      font-size: 9px;
-    }
-    .hands-row.multi.split-row .card.small .card-center {
-      font-size: 22px;
-    }
-    .hand-col { width: 100%; align-items: center; }
-    .hands-row.multi.split-row .hand-col {
+    /* Cancel any translateY transforms from two-hand layout */
+    .table-wrap .hands-row.split-row .hand-col {
+      transform: none !important;
+      flex: 0 0 auto;
       width: auto;
-      flex: 0 1 auto;
     }
+    /* Rows in split-stack don't grow — sit at natural height */
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row {
+      flex: 0 0 auto;
+      margin-top: 0;
+    }
+    /* Push split pair down from dealer area to match original hand positions */
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row.split-row {
+      padding-top: 50px;
+    }
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row:not(.split-row) {
+      padding-top: 16px;
+    }
+    .hands-row.split-row .bet-bar {
+      margin-left: 0;
+    }
+    /* ── END SPLIT LAYOUT ── */
+    .hand-col { width: 100%; align-items: center; }
     .cards-col { width: auto; min-width: 0; }
     .cards-area { width: auto; }
     .sb-and-cards {
@@ -3225,15 +3211,6 @@
       margin-top: 0;
       gap: 4px;
     }
-    .hands-row.multi.split-row .sb-and-cards {
-      width: auto;
-      gap: 2px;
-    }
-    .hands-row.multi.split-row .sb-col {
-      flex-basis: 36px;
-      width: 36px;
-      gap: 2px;
-    }
     .bet-bar {
       margin-left: 0;
       width: auto;
@@ -3245,11 +3222,6 @@
     }
     .hands-row.multi:not(.split-row):not(.two) .bet-bar {
       margin-left: 24px;
-    }
-    .hands-row.multi.split-row .bet-bar {
-      width: auto;
-      min-width: 0;
-      margin-left: 0;
     }
     .ghost-spacer { display: none; }
     .ghost-wrap {
@@ -4740,58 +4712,7 @@
     font-size: calc(36px * var(--mobile-geometry-scale)) !important;
   }
 
-  /* Split-hand cards must beat the global mobile geometry lock */
-  .table-wrap .hands-row.multi.split-row .card.small,
-  .table-wrap .hands-row.multi.split-row .card-placeholder,
-  .table-wrap .hands-row.multi.split-row .card-placeholder.small {
-    width: 52px !important;
-    height: 88px !important;
-    border-radius: 6px !important;
-  }
-  .table-wrap .hands-row.multi.split-row .card.small .card-tl {
-    top: 4px !important;
-    left: 5px !important;
-  }
-  .table-wrap .hands-row.multi.split-row .card.small .card-br {
-    bottom: 4px !important;
-    right: 5px !important;
-  }
-  .table-wrap .hands-row.multi.split-row .card.small .card-rank {
-    font-size: 10px !important;
-  }
-  .table-wrap .hands-row.multi.split-row .card.small .card-suit-sm {
-    font-size: 8px !important;
-  }
-  .table-wrap .hands-row.multi.split-row .card.small .card-center {
-    font-size: 20px !important;
-  }
-  .table-wrap.phase-result .hands-row.split-row .hand-col {
-    transform: none !important;
-    width: auto !important;
-    flex: 0 1 auto !important;
-  }
-  .table-wrap.phase-result .hands-row.split-row .sb-and-cards {
-    width: fit-content !important;
-    gap: 2px !important;
-    margin: 0 auto !important;
-  }
-  .table-wrap.phase-result .hands-row.split-row .sb-col {
-    flex-basis: 36px !important;
-    width: 36px !important;
-    gap: 2px !important;
-    transform: none !important;
-    margin-right: 0 !important;
-  }
-  .table-wrap.phase-result .hands-row.split-row .cards-col.has-sidebets {
-    --sidebet-center-offset: 0px !important;
-    transform: none !important;
-  }
-  .table-wrap.phase-result .hands-row.split-row .cards-row {
-    width: fit-content !important;
-    transform: none !important;
-    justify-content: center !important;
-    margin: 0 auto !important;
-  }
+  /* Split hands use the same geometry-locked card size as other multi hands — no override needed */
   .table-wrap.phase-play .dealer-area {
     min-height: calc(168px * var(--mobile-geometry-scale));
     flex-basis: calc(168px * var(--mobile-geometry-scale));
