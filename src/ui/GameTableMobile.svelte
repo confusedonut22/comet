@@ -2414,13 +2414,13 @@
   .sb-box {
     width: 72px; min-height: 52px;
     border-radius: 7px;
-    border: 2.5px dashed rgba(255,255,255,0.55);
+    border: 2.5px dashed #ffffff;
     background: transparent;
     cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; padding: 5px 4px;
     transition: all 0.15s;
-    color: rgba(255,255,255,0.78);
+    color: #ffffff;
     user-select: none;
     box-shadow: none;
   }
@@ -2436,8 +2436,8 @@
     box-shadow: 0 0 10px rgba(212,168,64,0.3);
     color: #f2e8d0;
   }
-  .sb-box-label { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2; font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.78); }
-  .sb-box-amt   { font-size: 14px; font-weight: 700; color: #e8d48b; }
+  .sb-box-label { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2; font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; }
+  .sb-box-amt   { font-size: 14px; font-weight: 700; color: #ffffff; }
   .sb-box-editing {
     width: 72px; min-height: 52px;
     border-radius: 7px;
@@ -4018,17 +4018,21 @@
       border-radius: 7px;
       justify-content: flex-start;
       gap: 1px;
+      border-color: #ffffff;
+      color: #ffffff;
     }
     .table-wrap.phase-bet .sb-box-label,
     .table-wrap.phase-play .sb-box-label,
     .table-wrap.phase-result .sb-box-label {
       font-size: 8px;
       line-height: 0.95;
+      color: #ffffff;
     }
     .table-wrap.phase-bet .sb-box-label-213,
     .table-wrap.phase-play .sb-box-label-213,
     .table-wrap.phase-result .sb-box-label-213 {
       font-size: 9px;
+      color: #ffffff;
     }
     .table-wrap.phase-bet .sb-box,
     .table-wrap.phase-bet .sb-box-editing {
@@ -4040,6 +4044,7 @@
     .table-wrap.phase-play .sb-box-amt,
     .table-wrap.phase-result .sb-box-amt {
       font-size: 9px;
+      color: #ffffff;
     }
     .table-wrap.phase-bet .sb-box,
     .table-wrap.phase-bet .sb-box-editing,
@@ -4373,12 +4378,12 @@
       min-height: 32.4px !important;
       max-height: 32.4px !important;
       padding: 0 !important;
-      border-color: rgba(255, 255, 255, 0.9) !important;
+      border-color: #ffffff !important;
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213,
     .table-wrap.phase-play .hands-row.two .sb-box-amt {
-      color: rgba(255, 255, 255, 0.96) !important;
+      color: #ffffff !important;
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213 {
@@ -5032,6 +5037,30 @@
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type .bet-bar {
       transform: translate(26px, 1px) scale(0.8) !important;
+    }
+
+    .table-wrap.phase-bet .hands-row.two .sb-col {
+      transform: translateX(73px) !important;
+    }
+
+    .table-wrap.phase-bet .hands-row.two .hand-col:first-of-type .sb-col {
+      transform: translateX(69px) !important;
+    }
+
+    .table-wrap.phase-bet .hands-row.two .hand-col:last-of-type .sb-col {
+      transform: translateX(61.5px) !important;
+    }
+
+    .table-wrap.phase-bet .sb-box,
+    .table-wrap.phase-bet .sb-box-editing {
+      border-color: #ffffff !important;
+      color: #ffffff !important;
+    }
+
+    .table-wrap.phase-bet .sb-box-label,
+    .table-wrap.phase-bet .sb-box-label-213,
+    .table-wrap.phase-bet .sb-box-amt {
+      color: #ffffff !important;
     }
 
   }
