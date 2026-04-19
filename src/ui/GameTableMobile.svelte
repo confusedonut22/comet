@@ -623,7 +623,7 @@
   {/if}
 
   {#if showOptionsMenu}
-    <div class="mobile-options-drawer" class:full-panel-open={$showRules || showAbout} on:click={stopEvent}>
+    <div class="mobile-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} on:click={stopEvent}>
       <div class="mobile-options-column">
         <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
           <span class="btn-options-toggle-label">Autobet</span>
@@ -633,10 +633,41 @@
           <span class="btn-options-toggle-label">Sidebets</span>
           <span class="options-mini-toggle" aria-hidden="true">{#if $sideBetsEnabled}✓{/if}</span>
         </button>
+        <button class="btn-tab btn-options-item" class:active={showFeltPanel} on:click={toggleFeltPanel}>Texture</button>
         <button class="btn-tab btn-options-item" class:active={$showRules} on:click={toggleRulesPanel}>Rules</button>
         <button class="btn-tab btn-options-item btn-mute" class:muted={soundMuted} on:click={onToggleMute}>{soundMuted ? 'Unmute' : 'Sound'}</button>
         <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>About</button>
       </div>
+      {#if showFeltPanel}
+        <div class="panel felt-panel felt-panel-inline" on:click={stopEvent}>
+          <div class="panel-title">Texture</div>
+          <div class="texture-picker">
+            {#each TEXTURE_ROWS as row}
+              <div class="texture-row">
+                <div class="texture-row-label">{row.textureLabel}</div>
+                {#each row.options as option}
+                  <button
+                    class="btn-theme texture-option"
+                    class:active={feltTheme === option.key}
+                    class:theme-velvet-blue={option.key === "velvet-blue"}
+                    class:theme-velvet-green={option.key === "velvet-green"}
+                    class:theme-velvet-black={option.key === "velvet-black"}
+                    class:theme-ridge-blue={option.key === "ridge-blue"}
+                    class:theme-ridge-green={option.key === "ridge-green"}
+                    class:theme-ridge-black={option.key === "ridge-black"}
+                    class:theme-felt-blue={option.key === "felt-blue"}
+                    class:theme-felt-green={option.key === "felt-green"}
+                    class:theme-felt-black={option.key === "felt-black"}
+                    on:click={() => applyFeltTheme(option.key)}
+                  >
+                    <span class="texture-option-swatch" aria-hidden="true"></span>
+                  </button>
+                {/each}
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
       {#if $showRules}
         <div class="panel rules-panel rules-panel-inline" on:click={stopEvent}>
           <div class="panel-title">How To Play</div>
@@ -971,6 +1002,7 @@
                 {/if}
                 <div
                   class="cards-row"
+                  class:active-cards-row={isActive && multi}
                   style="min-height: {cardsRowMinH}px; position: relative;"
                 >
                 {#if (isBet || isResult) && !isReplay && $numSlots > 1}
@@ -1014,7 +1046,7 @@
 
               <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
               {#if hand.bet > 0 || isBet || isResult}
-                <div class="bet-bar">
+                <div class="bet-bar" class:active-hand-bet={isActive && multi}>
                   {#if (isBet || isResult) && !isReplay && !activeSb}
                     <div class="bet-amount-row bet-amount-row-with-actions">
                       <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 0.5)}>1/2</button>
@@ -1101,19 +1133,6 @@
 
   </div>
 
-  {#if showMobileAutoplay && !isReplay}
-    <button
-      bind:this={fixedAutoplayEl}
-      class="btn-autoplay-image fixed-autoplay-button"
-      type="button"
-      aria-label="Autoplay"
-      on:click={toggleAutoPanel}
-      style={fixedAutoplayTop !== null ? `top: ${fixedAutoplayTop}px;` : undefined}
-    >
-      <img src={AUTOPLAY_BUTTON} alt="" />
-    </button>
-  {/if}
-
   <!-- BOTTOM DOCK -->
   <div class="bottom-dock" on:click={stopEvent}>
 
@@ -1193,6 +1212,17 @@
           >
             {dealLabel}
           </button>
+          {#if showMobileAutoplay}
+            <button
+              bind:this={fixedAutoplayEl}
+              class="btn-autoplay-image dock-autoplay-button"
+              type="button"
+              aria-label="Autoplay"
+              on:click={toggleAutoPanel}
+            >
+              <img src={AUTOPLAY_BUTTON} alt="" />
+            </button>
+          {/if}
         </div>
       {/if}
   </div>
@@ -2232,6 +2262,14 @@
     gap: 2px;
     margin-left: 44px; /* center under cards-row, offsetting sb-col width */
   }
+  .bet-bar.active-hand-bet {
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 2px rgba(232, 212, 139, 0.96),
+      0 0 18px rgba(212, 168, 64, 0.38);
+    background: rgba(232, 212, 139, 0.08);
+    padding: 3px 6px;
+  }
   .wager-label {
     font-size: 20px; font-weight: 600; color: #f2e8d0;
     text-align: center; white-space: nowrap;
@@ -2268,6 +2306,14 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+  }
+  .cards-row.active-cards-row {
+    border-radius: 18px;
+    box-shadow:
+      0 0 0 3px rgba(232, 212, 139, 0.98),
+      0 0 24px rgba(212, 168, 64, 0.42);
+    padding: 6px;
+    background: rgba(232, 212, 139, 0.05);
   }
   .bet-amount-row-with-actions {
     width: 100%;
@@ -2421,8 +2467,15 @@
     position: fixed;
     right: 18px;
     top: 0;
-    width: 54px;
+    width: 70px;
     z-index: 31;
+  }
+  .dock-autoplay-button {
+    position: absolute;
+    right: 10px;
+    bottom: 0;
+    width: 70px;
+    z-index: 2;
   }
   .ghost {
     width: 104px; height: 146px; border-radius: 8px;
@@ -2477,9 +2530,12 @@
     justify-content: center;
     padding: 8px 0 0;
     flex-shrink: 0;
+    position: relative;
   }
   .center-deal-wrap .btn-deal {
-    width: min(600px, calc(100% - 12px));
+    flex: 0 0 min(402px, calc((100% - 12px) * 0.67));
+    width: min(402px, calc((100% - 12px) * 0.67));
+    max-width: min(402px, calc((100% - 12px) * 0.67));
     min-height: 52px;
     font-size: 20px;
   }
@@ -3427,10 +3483,12 @@
       background: linear-gradient(180deg, rgba(4, 16, 10, 0.98) 0%, rgba(4, 16, 10, 0.82) 100%);
       padding-bottom: 8px;
     }
+    .felt-panel-inline,
     .rules-panel-inline,
     .about-panel-inline {
       pointer-events: auto;
     }
+    .mobile-options-drawer.full-panel-open .felt-panel-inline,
     .mobile-options-drawer.full-panel-open .rules-panel-inline,
     .mobile-options-drawer.full-panel-open .about-panel-inline {
       width: 100%;
@@ -4468,6 +4526,9 @@
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
     transform: translateX(25px) !important;
   }
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
+    transform: translateY(1px) !important;
+  }
   .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets,
   .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets,
   .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets {
@@ -4523,6 +4584,25 @@
     margin: 0 !important;
     line-height: 1 !important;
     width: 100% !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    transform: translateX(-21px) !important;
+    overflow: hidden !important;
+    position: relative !important;
+    z-index: 2 !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing .sb-wager-input {
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    padding: 1px 2px !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
   }
   .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type .sb-col {
     transform: translateX(83px) !important;
@@ -4741,6 +4821,34 @@
   }
 
   @media (max-width: 767px) {
+    .table-wrap.phase-play-single-hand .hands-row,
+    .table-wrap.phase-result-single-hand .hands-row,
+    .table-wrap.phase-play-single-hand .hand-col,
+    .table-wrap.phase-result-single-hand .hand-col,
+    .table-wrap.phase-play-single-hand .cards-col,
+    .table-wrap.phase-result-single-hand .cards-col,
+    .table-wrap.phase-play-single-hand .sb-and-cards,
+    .table-wrap.phase-result-single-hand .sb-and-cards,
+    .table-wrap.phase-play-single-hand .cards-row,
+    .table-wrap.phase-result-single-hand .cards-row,
+    .table-wrap.phase-play-single-hand .player-live-card-wrap,
+    .table-wrap.phase-result-single-hand .player-live-card-wrap,
+    .table-wrap.phase-play-single-hand .player-result-back-wrap,
+    .table-wrap.phase-result-single-hand .player-result-back-wrap,
+    .table-wrap.phase-play-single-hand .hv-bubble,
+    .table-wrap.phase-result-single-hand .hv-bubble,
+    .table-wrap.phase-play-single-hand .bet-bar,
+    .table-wrap.phase-result-single-hand .bet-bar,
+    .table-wrap.phase-play-single-hand .sb-col,
+    .table-wrap.phase-result-single-hand .sb-col,
+    .table-wrap.phase-play-single-hand .sb-box,
+    .table-wrap.phase-result-single-hand .sb-box,
+    .table-wrap.phase-play-single-hand .sb-box-editing,
+    .table-wrap.phase-result-single-hand .sb-box-editing {
+      transition: none !important;
+      animation: none !important;
+    }
+
     .player-live-card-wrap {
       transition: transform 220ms ease, opacity 220ms ease;
       transform-origin: top center;
