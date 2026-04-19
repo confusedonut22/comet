@@ -230,6 +230,15 @@
     return "-54px";
   }
 
+  function splitRightCardMargin(i) {
+    if (i === 0) return "0";
+    const baseOverlap = Number.parseFloat(cardOverlapSmall);
+    if (isDesktop || !(isPlay || isResult) || Number.isNaN(baseOverlap)) {
+      return `${Math.round(baseOverlap * 0.7)}px`;
+    }
+    return "-38px";
+  }
+
   function dealerCardMargin(i, cardCount) {
     if (i === 0) return "0";
     if (isDesktop) return dealerOverlap;
@@ -1022,12 +1031,12 @@
                   class:active-cards-row={isActive && multi}
                   style="min-height: {cardsRowMinH}px; position: relative;"
                 >
-                {#if (isBet || isResult) && !isReplay && $numSlots > 1}
+                {#if (isBet || isResult) && !isReplay && $numSlots > 1 && !hand.isSplit}
                   <button class="btn-remove-x" on:click={() => removeSlot(idx)}>×</button>
                 {/if}
                 {#if hand.cards.length > 0}
                   {#each hand.cards as card, i}
-                    <div class="card-wrap player-live-card-wrap" style="margin-left: {playerCardMargin(i)}; z-index: {i}; margin-top: {isSplitRight && i > 0 ? `${i * 8}px` : ''};">
+                    <div class="card-wrap player-live-card-wrap" style="margin-left: {isSplitRight ? splitRightCardMargin(i) : playerCardMargin(i)}; z-index: {i}; margin-top: {isSplitRight && i > 0 ? `${i * 6}px` : ''};">
                       {#if customFaceCardImage(card)}
                         <div
                           class="card card-custom"
@@ -1062,7 +1071,7 @@
 
 
               <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
-              {#if hand.bet > 0 || isBet || isResult}
+              {#if (hand.bet > 0 || isBet || isResult) && !hand.isSplit}
                 <div class="bet-bar" class:active-hand-bet={isActive && multi}>
                   {#if (isBet || isResult) && !isReplay && !activeSb}
                     <div class="bet-amount-row bet-amount-row-with-actions">
@@ -1090,7 +1099,7 @@
               {/if}
 
               <!-- Chip buttons -->
-              {#if (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
+              {#if (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both') && !hand.isSplit}
                 <div class="chip-btns">
                   {#if !activeSb && $runtimeConfig?.betLevels?.length}
                     {#each $runtimeConfig.betLevels as betLevel}
@@ -3189,6 +3198,34 @@
     }
     .hands-row.split-row .bet-bar {
       margin-left: 0;
+    }
+    /* Right split hand: 30% smaller cards */
+    .table-wrap .hands-row.split-row .split-right .card,
+    .table-wrap .hands-row.split-row .split-right .card.small,
+    .table-wrap .hands-row.split-row .split-right .card-placeholder,
+    .table-wrap .hands-row.split-row .split-right .card-placeholder.small {
+      width: calc(92px * var(--mobile-geometry-scale) * 0.7) !important;
+      height: calc(156px * var(--mobile-geometry-scale) * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-rank {
+      font-size: calc(18px * var(--mobile-geometry-scale) * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-suit-sm {
+      font-size: calc(15px * var(--mobile-geometry-scale) * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-center {
+      font-size: calc(36px * var(--mobile-geometry-scale) * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-tl {
+      top: 3px !important;
+      left: 4px !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-br {
+      bottom: 3px !important;
+      right: 4px !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .cards-row {
+      min-height: 0 !important;
     }
     /* ── END SPLIT LAYOUT ── */
     .hand-col { width: 100%; align-items: center; }
