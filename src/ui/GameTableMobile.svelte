@@ -23,6 +23,22 @@
   import JACK_CLUBS_CHADJACK from "../assets/custom-face-cards/jack-clubs-chadjack.png";
   import JACK_DIAMONDS_CHADJACK from "../assets/custom-face-cards/jack-diamonds-chadjack.png";
 
+  /*
+    LAYOUT FREEZE RULE — DO NOT MOVE ANY GEOMETRY
+
+    User lock in force for the entire mobile blackjack layout:
+    - Nothing on any screen may move unless the user explicitly unlocks that exact element.
+    - All player decks are frozen.
+    - All dealer decks are frozen.
+    - All wager bars are frozen.
+    - All count bubbles are frozen.
+    - All sidebets are frozen.
+    - All player and dealer layout lanes are frozen.
+    - Screen 1, screen 2, and screen 3 are all frozen.
+
+    Any future change must treat layout movement as prohibited by default.
+  */
+
   // ─── FORMAT ───
   const AUTO_MODES = [
     {
@@ -947,7 +963,7 @@
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const reserveSideBetLane = isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
+        {@const reserveSideBetLane = $sideBetsEnabled}
         <div class="hand-col" class:empty-hand={hand.cards.length === 0}>
 
           <!-- Cards area -->
@@ -2308,12 +2324,21 @@
     gap: 8px;
   }
   .cards-row.active-cards-row {
-    border-radius: 18px;
+    border-radius: 8px;
     box-shadow:
-      0 0 0 3px rgba(232, 212, 139, 0.98),
-      0 0 24px rgba(212, 168, 64, 0.42);
-    padding: 6px;
-    background: rgba(232, 212, 139, 0.05);
+      0 0 18px rgba(255, 99, 34, 0.46),
+      0 0 34px rgba(255, 120, 24, 0.41),
+      0 0 54px rgba(255, 58, 18, 0.29);
+    padding: 0;
+    background: transparent;
+  }
+  .table-wrap.phase-play .hands-row.two .cards-row.active-cards-row {
+    border-radius: 8px;
+    box-shadow:
+      0 0 20px rgba(255, 99, 34, 0.48),
+      0 0 38px rgba(255, 120, 24, 0.42),
+      0 0 58px rgba(255, 58, 18, 0.31);
+    padding: 0;
   }
   .bet-amount-row-with-actions {
     width: 100%;
@@ -3783,15 +3808,33 @@
     .table-wrap.phase-play .sb-col {
       gap: 4px;
     }
-    .table-wrap.phase-play .sb-box {
-      width: 54px;
-      min-height: 56px;
+    .table-wrap.phase-play .sb-box,
+    .table-wrap.phase-play .sb-box-editing {
+      width: 32.4px;
+      min-width: 32.4px;
+      max-width: 32.4px;
+      height: 32.4px !important;
+      min-height: 32.4px !important;
+      max-height: 32.4px;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      padding: 0;
     }
-    .table-wrap.phase-play .sb-box-label {
+    .table-wrap.phase-play .sb-box-label,
+    .table-wrap.phase-play .sb-box-label-213 {
+      width: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
       font-size: 8px;
     }
-    .table-wrap.phase-play .sb-box-label-213 {
-      font-size: 9px;
+    .table-wrap.phase-play-single-hand .sb-box-label,
+    .table-wrap.phase-play-single-hand .sb-box-label-213 {
+      transform: translateY(5px);
     }
     .table-wrap.phase-play .action-wager-label {
       margin-bottom: 0;
@@ -4260,15 +4303,18 @@
     }
     /* Canonical lock: two-hand must match first-hand lane geometry */
     .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets,
-    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets,
     .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets {
       --sidebet-center-offset: 0px !important;
       transform: translateX(-26px) !important;
     }
+    .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets {
+      --sidebet-center-offset: 0px !important;
+      transform: none !important;
+    }
     .table-wrap.phase-bet .hands-row.two .cards-col.has-sidebets .hv-bubble,
     .table-wrap.phase-play .hands-row.two .cards-col.has-sidebets .hv-bubble,
     .table-wrap.phase-result .hands-row.two .cards-col.has-sidebets .hv-bubble {
-      transform: none !important;
+      transform: translateX(26px) !important;
       align-self: center !important;
     }
     .table-wrap.phase-bet .hands-row.two .cards-row,
@@ -4303,11 +4349,33 @@
     .table-wrap.phase-bet .hands-row.two .hand-col:first-of-type .cards-row {
       transform: translateX(6px) !important;
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type .sb-col {
-      transform: translateX(10px) !important;
+    .table-wrap.phase-play .hands-row.two .sb-and-cards {
+      transform: translateX(-26px) !important;
+      gap: 0 !important;
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type .sb-col {
-      transform: translateX(-6px) !important;
+    .table-wrap.phase-play .hands-row.two .sb-box,
+    .table-wrap.phase-play .hands-row.two .sb-box-editing {
+      width: 35.9px !important;
+      min-width: 35.9px !important;
+      max-width: 35.9px !important;
+      height: 32.4px !important;
+      min-height: 32.4px !important;
+      max-height: 32.4px !important;
+      padding: 0 !important;
+      border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .sb-box-label,
+    .table-wrap.phase-play .hands-row.two .sb-box-label-213,
+    .table-wrap.phase-play .hands-row.two .sb-box-amt {
+      color: rgba(255, 255, 255, 0.96) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .sb-box-label,
+    .table-wrap.phase-play .hands-row.two .sb-box-label-213 {
+      transform: translateY(4px) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .sb-col {
+      transform: translateX(85px) !important;
+      margin-right: 0 !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(26px) !important;
@@ -4517,14 +4585,17 @@
   .table-wrap.phase-play-single-hand .felt.single-hand .cards-row {
     transform: none !important;
   }
+  .table-wrap.phase-play-single-hand .felt.single-hand .sb-and-cards {
+    transform: translateY(1px) !important;
+  }
   .table-wrap.phase-result-single-hand .felt.single-hand .cards-row {
     transform: none !important;
   }
   .table-wrap.phase-play-single-hand .felt.single-hand .sb-col {
-    transform: none !important;
+    transform: translateX(5px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateX(25px) !important;
+    transform: translateX(11px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
     transform: translateY(1px) !important;
@@ -4539,6 +4610,10 @@
   .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets .hv-bubble {
     transform: none !important;
     align-self: center !important;
+  }
+  .table-wrap.phase-play-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
+    transform: translateX(26px) !important;
+    margin-bottom: 3px !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .hv-bubble {
     transform: translateX(26px) !important;
@@ -4584,6 +4659,12 @@
     margin: 0 !important;
     line-height: 1 !important;
     width: 100% !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .sb-box-label {
+    transform: translateY(-2px) !important;
+  }
+  .table-wrap.phase-result-two-hand .hands-row.two .sb-box-label-213 {
+    transform: translateY(-1.5px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
     width: 36px !important;
