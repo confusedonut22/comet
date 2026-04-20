@@ -604,10 +604,10 @@
   class="table-wrap"
   class:phase-play={isPlay || isDealer || isIns || isResult}
   class:phase-result={isResult}
-  class:phase-result-single-hand={isResult && $numSlots === 1}
-  class:phase-result-two-hand={isResult && $numSlots === 2}
+  class:phase-result-single-hand={isResult && ($numSlots === 1 || useSplitRows)}
+  class:phase-result-two-hand={isResult && $numSlots === 2 && !useSplitRows}
   class:phase-bet={isBet}
-  class:phase-play-single-hand={isPlay && $numSlots === 1}
+  class:phase-play-single-hand={isPlay && ($numSlots === 1 || useSplitRows)}
   class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
   class:felt-theme-velvet-green={feltTheme === "velvet-green"}
   class:felt-theme-velvet-black={feltTheme === "velvet-black"}
@@ -845,7 +845,7 @@
   <div
     class="felt"
     bind:this={feltEl}
-    class:single-hand={!multi}
+    class:single-hand={!multi || useSplitRows}
     class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
     class:felt-theme-velvet-green={feltTheme === "velvet-green"}
     class:felt-theme-velvet-black={feltTheme === "velvet-black"}
@@ -973,7 +973,7 @@
     <!-- PLAYER HANDS -->
     <div class="hands-stack">
       {#each handRows as row, rowIdx}
-      <div class="hands-row" class:multi class:two={$numSlots === 2 || useSplitRows} class:four={$numSlots === 4} class:has-split={useSplitRows}>
+      <div class="hands-row" class:multi class:two={$numSlots === 2 && !useSplitRows} class:four={$numSlots === 4} class:has-split={useSplitRows}>
       <!-- Invisible left spacer mirrors ghost width — keeps card stack at screen center -->
       {#if rowIdx === 0 && (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div class="ghost-spacer"></div>
