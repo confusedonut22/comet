@@ -960,9 +960,9 @@
       <div class="divider-copy">CHADJACK pays 7 to 5</div>
     </div>
     <!-- PLAYER HANDS -->
-    <div class="hands-stack" class:split-stack={useSplitRows}>
+    <div class="hands-stack">
       {#each handRows as row, rowIdx}
-      <div class="hands-row" class:multi class:two={$numSlots === 2 && !useSplitRows} class:four={$numSlots === 4} class:split-row={useSplitRows && row.some(({ hand }) => hand.isSplit)}>
+      <div class="hands-row" class:multi class:two={$numSlots === 2} class:four={$numSlots === 4} class:has-split={useSplitRows}>
       <!-- Invisible left spacer mirrors ghost width — keeps card stack at screen center -->
       {#if rowIdx === 0 && (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div class="ghost-spacer"></div>
@@ -974,7 +974,8 @@
         {@const activeSb = sbSelect[idx]}
         {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
         {@const isSplitRight = useSplitRows && hand.isSplit && rowHandIndex === 1}
-        <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}>
+        <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}
+          style={isSplitRight ? 'position:absolute;left:calc(50% + 90px);top:0;flex:none;width:auto;transform:none;--mobile-geometry-scale:calc(0.9 * 0.7);' : ''}>
 
           <!-- Cards area -->
           <div class="cards-area">
@@ -3171,59 +3172,13 @@
       align-self: center;
     }
     /* ── SPLIT LAYOUT ── */
-    /* Stack mirrors hands-row.two column structure */
-    .hands-stack.split-stack {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 22px;
-      padding-top: 22px;
-      padding-bottom: 22px;
-      width: 100%;
-    }
-    .hands-stack.split-stack .hands-row {
-      flex: 0 0 auto;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .hands-stack.split-stack .hands-row.split-row {
+    /* Make the row the offset origin for the absolutely-positioned split-right hand */
+    .hands-row.two.has-split {
       position: relative;
     }
-    /* Lock rows to exact Y positions of the original two-hand phase-play hand-cols */
-    .table-wrap.phase-play .hands-stack.split-stack .hands-row:first-child {
-      transform: translateY(60px);
-    }
-    .table-wrap.phase-play .hands-stack.split-stack .hands-row:last-child {
-      transform: translateY(50px);
-    }
-    /* Non-split-right cards-area: apply same scale as .hands-row.two so card visual size is unchanged */
-    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .cards-area {
-      width: min(100%, 308px);
-      margin: 0 auto;
-      transform: scale(0.875);
-      transform-origin: top center;
-    }
-    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .cards-row {
-      align-items: flex-start;
-      justify-content: center;
-      min-height: 0;
-      transform: translateX(-10px);
-    }
-    /* Split-right: out of flow, overlaid to the right */
-    .table-wrap .hands-row.split-row .split-right {
-      position: absolute;
-      left: calc(50% + 90px);
-      top: 0;
-      flex: none;
-      width: auto;
-    }
-    /* Split-right: override --mobile-geometry-scale so the geometry lock itself shrinks everything 30% */
-    .table-wrap .hands-row.split-row .split-right {
-      --mobile-geometry-scale: calc(0.9 * 0.7);
-    }
-    .table-wrap .hands-row.split-row .split-right .hv-bubble {
+    /* Split-right is taken out of flex flow and pinned to the right.
+       All sizing and transform are set via inline style on the element. */
+    .hands-row.two.has-split .hand-col.split-right .hv-bubble {
       font-size: calc(15px * 0.7) !important;
       padding: 1px 7px !important;
       border-radius: 7px !important;
