@@ -6,7 +6,7 @@
     phase, balance, dealerHand, hands, activeHand, message, pending,
     numSlots, maxHands, autoPlay, autoSpeed, autoCount, autoMax, autoMode,
     showAuto, showRules, totalCost, canDeal, introOp, rgsStatus, rgsError, runtimeConfig, runtimeJurisdiction,
-    sessionStartedAt, netPosition, runtimeCurrency,
+    sessionStartedAt, netPosition, runtimeCurrency, autoBetEnabled, sideBetsEnabled,
     startIntro, addSlot, removeSlot, addSideBetChip, clearSideBet, setSideBetAmount, addChip, clearBet, setBetLevel, adjustBetByFactor,
     newRound, deal, hit, stand, doubleDown, split, takeInsurance, autoTick, refreshStakeBalance,
   } from "../../../../game/store.js";
@@ -18,10 +18,10 @@
   import { toggleMute, isMuted } from "../../../../game/audio.js";
   import INTRO_VIDEO from "../../../../assets/chad_labs_intro_powergrid_v7.mp4";
   import INTRO_VIDEO_MOBILE from "../../../../assets/chad_labs_intro_powergrid_v7_mobile.mp4";
-  import KING_SPADES_CHADJACK from "../../../../assets/custom-face-cards/king-spades-chadjack.png";
-  import KING_HEARTS_CHADJACK from "../../../../assets/custom-face-cards/king-hearts-chadjack.png";
-  import KING_CLUBS_CHADJACK from "../../../../assets/custom-face-cards/king-clubs-chadjack.png";
-  import KING_DIAMONDS_CHADJACK from "../../../../assets/custom-face-cards/king-diamonds-chadjack.png";
+  import JACK_SPADES_CHADJACK from "../../../../assets/custom-face-cards/jack-spades-chadjack.png";
+  import JACK_HEARTS_CHADJACK from "../../../../assets/custom-face-cards/jack-hearts-chadjack.png";
+  import JACK_CLUBS_CHADJACK from "../../../../assets/custom-face-cards/jack-clubs-chadjack.png";
+  import JACK_DIAMONDS_CHADJACK from "../../../../assets/custom-face-cards/jack-diamonds-chadjack.png";
 
   export let layoutVariant = "desktop";
 
@@ -242,11 +242,11 @@
   }
 
   function customFaceCardImage(card) {
-    if (card?.rank !== "K") return null;
-    if (card?.suit === "spades") return KING_SPADES_CHADJACK;
-    if (card?.suit === "hearts") return KING_HEARTS_CHADJACK;
-    if (card?.suit === "clubs") return KING_CLUBS_CHADJACK;
-    if (card?.suit === "diamonds") return KING_DIAMONDS_CHADJACK;
+    if (card?.rank !== "J") return null;
+    if (card?.suit === "spades") return JACK_SPADES_CHADJACK;
+    if (card?.suit === "hearts") return JACK_HEARTS_CHADJACK;
+    if (card?.suit === "clubs") return JACK_CLUBS_CHADJACK;
+    if (card?.suit === "diamonds") return JACK_DIAMONDS_CHADJACK;
     return null;
   }
 
@@ -318,6 +318,7 @@
 
   let showAbout = false;
   let showFeltPanel = false;
+  let showOptionsMenu = false;
   let soundMuted = false;
   let autoConfirmOpen = false;
   let feltTheme = "felt-green";
@@ -332,6 +333,7 @@
     if ($showRules) showRules.set(false);
     if (showAbout) showAbout = false;
     showFeltPanel = false;
+    showOptionsMenu = false;
     autoConfirmOpen = false;
   }
 
@@ -352,6 +354,7 @@
     showAuto.set(false);
     showRules.set(false);
     showFeltPanel = false;
+    showOptionsMenu = true;
   }
 
   function applyFeltTheme(themeKey) {
@@ -367,6 +370,7 @@
     showAuto.set(false);
     showRules.set(false);
     showAbout = false;
+    showOptionsMenu = true;
     autoConfirmOpen = false;
   }
 
@@ -398,6 +402,8 @@
     showAuto.update((v) => !v);
     showRules.set(false);
     showFeltPanel = false;
+    showAbout = false;
+    showOptionsMenu = false;
   }
 
   function toggleRulesPanel(event) {
@@ -406,6 +412,37 @@
     showAuto.set(false);
     autoConfirmOpen = false;
     showFeltPanel = false;
+    showAbout = false;
+    showOptionsMenu = true;
+  }
+
+  function toggleOptionsMenu(event) {
+    event?.stopPropagation?.();
+    showOptionsMenu = !showOptionsMenu;
+    showAuto.set(false);
+    if (!showOptionsMenu) {
+      showRules.set(false);
+      showFeltPanel = false;
+      showAbout = false;
+    }
+  }
+
+  function toggleAutoBetSetting(event) {
+    event?.stopPropagation?.();
+    const next = !get(autoBetEnabled);
+    autoBetEnabled.set(next);
+    showAuto.set(false);
+    if (!next) autoPlay.set(false);
+  }
+
+  function toggleSideBetsSetting(event) {
+    event?.stopPropagation?.();
+    const next = !get(sideBetsEnabled);
+    sideBetsEnabled.set(next);
+    sbSelect = {};
+    if (!next && isBet) {
+      hands.update((list) => list.map((hand) => ({ ...hand, sb: { pp: 0, t: 0 } })));
+    }
   }
 
   function stopEvent(event) {
@@ -513,33 +550,179 @@
 >
   <!-- BALANCE -->
   <div class="balance-row">
-    <div class="utility-btns" on:click={stopEvent}>
-      {#if !isReplay && !autoplayDisabled}
-        <button class="btn-tab btn-utility" class:active={$showAuto} class:dim={isPlay && !$autoPlay} on:click={toggleAutoPanel}>Auto</button>
-      {/if}
-      <button class="btn-tab btn-utility" class:active={$showRules} on:click={toggleRulesPanel}>Rules</button>
-      <button class="btn-tab btn-utility" class:active={showFeltPanel} on:click={toggleFeltPanel}>Texture</button>
+    <div class="header-controls" on:click={stopEvent}>
+      <div class="options-anchor">
+        <button
+          class="btn-tab btn-options-toggle desktop-options-launch"
+          class:active={showOptionsMenu || $showRules || showAbout}
+          on:click={toggleOptionsMenu}
+        >
+          Options
+        </button>
 
-      <button class="btn-tab btn-utility btn-mute" class:muted={soundMuted} on:click={onToggleMute}>{soundMuted ? 'Unmute' : 'Sound'}</button>
-      <button class="btn-tab btn-utility" class:active={showAbout} on:click={toggleAbout}>About</button>
-    </div>
-    <div class="session-meta">
-      {#if showSessionTimer}
-        <span class="session-pill">
-          <strong>Session</strong> {sessionElapsed}
-        </span>
-      {/if}
-      {#if showNetPosition}
-        <span class="session-pill" class:positive={netPositive} class:negative={netNegative}>
-          <strong>Net</strong> {sessionNet}
-        </span>
-      {/if}
-    </div>
-    <div class="balance-meta">
-      <span class="balance">{fmt($balance, displayCurrency)}</span>
-      {#if $rgsStatus === "playing" || $rgsStatus === "round-active"}
-        <span class="rgs-status">RGS {$rgsStatus}</span>
-      {/if}
+        {#if showOptionsMenu}
+          <div class="mobile-options-drawer desktop-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} on:click={stopEvent}>
+            <div class="mobile-options-column">
+              <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
+                <span class="btn-options-toggle-label">Autobet</span>
+                <span class="options-mini-toggle" aria-hidden="true">{#if $autoBetEnabled}✓{/if}</span>
+              </button>
+              <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$sideBetsEnabled} on:click={toggleSideBetsSetting}>
+                <span class="btn-options-toggle-label">Sidebets</span>
+                <span class="options-mini-toggle" aria-hidden="true">{#if $sideBetsEnabled}✓{/if}</span>
+              </button>
+              <button class="btn-tab btn-options-item" class:active={showFeltPanel} on:click={toggleFeltPanel}>Texture</button>
+              <button class="btn-tab btn-options-item" class:active={$showRules} on:click={toggleRulesPanel}>Rules</button>
+              <button class="btn-tab btn-options-item btn-mute" class:muted={soundMuted} on:click={onToggleMute}>{soundMuted ? 'Unmute' : 'Sound'}</button>
+              <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>About</button>
+            </div>
+
+            {#if showFeltPanel}
+              <div class="panel felt-panel felt-panel-inline desktop-options-panel" on:click={stopEvent}>
+                <div class="panel-title">Texture</div>
+                <div class="texture-picker">
+                  {#each TEXTURE_ROWS as row}
+                    <div class="texture-row texture-row-{row.textureKey}">
+                      <div class="texture-row-label">{row.textureLabel}</div>
+                      {#each row.options as option}
+                        <button
+                          class={`btn-theme texture-option theme-${option.key}`}
+                          class:active={feltTheme === option.key}
+                          on:click={() => applyFeltTheme(option.key)}
+                          aria-label={option.key}
+                        >
+                          <span class="texture-option-swatch" aria-hidden="true"></span>
+                        </button>
+                      {/each}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            {#if showAbout}
+              <div class="panel about-panel about-panel-inline desktop-options-panel" on:click={stopEvent}>
+                <div class="panel-title">About</div>
+                <div class="about-text">We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one.</div>
+              </div>
+            {/if}
+
+            {#if $showRules}
+              <div class="panel rules-panel rules-panel-inline desktop-options-panel" on:click={stopEvent}>
+                <div class="panel-title">How To Play</div>
+
+                <div class="rules-section"><strong>The Goal</strong>
+                  <div class="rules-text">Get a hand closer to 21 than the dealer without going over. If you go over 21, you bust and lose automatically, even if the dealer busts too.</div>
+                </div>
+
+                <div class="rules-section"><strong>Card Values</strong>
+                  <div class="rules-text">Number cards are worth their face value. Jack, Queen, and King are worth 10. Aces are worth either 1 or 11, whichever helps your hand more.</div>
+                </div>
+
+                <div class="rules-section"><strong>How a Round Works</strong>
+                  <div class="rules-text">{isSocial
+                    ? "You choose your play amount, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
+                    : "You place your bet, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Your Options</strong>
+                  <div class="rules-text">
+                    <strong>Hit</strong> - Take another card. You can keep hitting as many times as you want, as long as you don't bust.<br/><br/>
+                    <strong>Stand</strong> - Keep your current hand and end your turn.<br/><br/>
+                    <strong>Double Down</strong> - Double your original {isSocial ? 'play amount' : 'bet'} and receive exactly one more card, then you're done. No more hits after doubling. This is a power move when your hand is in a strong spot, like starting with a 10 or 11, because you're getting twice the money down when the odds favor you.<br/><br/>
+                    <strong>Split</strong> - If your first two cards are the same rank (e.g. two 8s, or two Kings), you can split them into two separate hands. Each hand gets a new card drawn, your {isSocial ? 'play amount' : 'bet'} is duplicated, and you play them out independently. Split Aces receive only one card each and cannot be hit again.
+                  </div>
+                </div>
+
+                <div class="rules-section"><strong>Blackjack</strong>
+                  <div class="rules-text">{isSocial
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
+                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Insurance</strong>
+                  <div class="rules-text">{isSocial
+                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                    : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Payouts</strong>
+                  <div class="rules-text">
+                    Blackjack pays 7:5<br/>
+                    Winning hand pays 1:1<br/>
+                    Insurance pays 2:1
+                  </div>
+                </div>
+
+                <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
+                  <div class="rules-text">{isSocial
+                    ? "Side plays are optional extra plays placed before the deal. They're independent from your main hand — you can win a side play and lose your main hand, or vice versa. Side plays are higher risk, higher reward, and have a lower RTP than the base game."
+                    : "Side bets are optional extra bets placed before the deal. They're independent from your main hand, you can win a side bet and lose your main hand, or vice versa. Side bets are higher risk, higher reward, and have a lower RTP than the base game."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Perfect Pairs</strong>
+                  <div class="rules-text rules-text-sm">{isSocial
+                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
+                    : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
+                  }</div>
+                  <table class="payout-table">
+                    <tbody>
+                      <tr><td>Perfect Pair (25:1)</td><td class="rules-example">Same rank, same suit. Example: two 7s of Hearts.</td></tr>
+                      <tr><td>Coloured Pair (12:1)</td><td class="rules-example">Same rank, same color, different suit. Example: 7 of Hearts and 7 of Diamonds.</td></tr>
+                      <tr><td>Mixed Pair (6:1)</td><td class="rules-example">Same rank, different color. Example: 7 of Hearts and 7 of Spades.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="rules-section"><strong>21+3</strong>
+                  <div class="rules-text rules-text-sm">{isSocial
+                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
+                    : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
+                  }</div>
+                  <table class="payout-table">
+                    <tbody>
+                      <tr><td>Suited Trips (100:1)</td><td class="rules-example">All three cards same rank and same suit. Example: three 8s of Clubs.</td></tr>
+                      <tr><td>Straight Flush (40:1)</td><td class="rules-example">Three consecutive ranks, all the same suit. Example: 4, 5, 6 of Hearts.</td></tr>
+                      <tr><td>Three of a Kind (30:1)</td><td class="rules-example">All three cards same rank, any suits. Example: three Kings.</td></tr>
+                      <tr><td>Straight (10:1)</td><td class="rules-example">Three consecutive ranks, any suits. Ace counts high or low.</td></tr>
+                      <tr><td>Flush (5:1)</td><td class="rules-example">All three cards same suit, any ranks. Example: any three Diamonds.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="rules-section"><strong>Game Rules</strong>
+                  <div class="rules-text">
+                    6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
+                    Dealer hits soft 17 and stands on hard 17.<br/>
+                    Double down available on hard 9, 10, or 11 only.<br/>
+                    One card only after doubling. No further hits.<br/>
+                    Split available when first two cards share the same rank.<br/>
+                    No re-splitting. No double after split.<br/>
+                    Split Aces receive one card only and stand automatically.<br/>
+                    Maximum starting hands: 4 on desktop, 2 on mobile.
+                  </div>
+                </div>
+
+                <div class="rules-section"><strong>Autoplay Modes</strong>
+                  <div class="rules-text">
+                    <strong>Conservative</strong> - Lower-variance play. Avoids marginal doubles, stands earlier in riskier spots. Designed to preserve your bankroll over longer sessions.<br/><br/>
+                    <strong>Optimal</strong> - Perfect basic strategy for this build. The mathematically strongest mode and the closest thing to ideal play.<br/><br/>
+                    <strong>High Roller</strong> - More aggressive doubles and pressure spots. Bigger swings, bigger upside, more pain when variance hits.
+                  </div>
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <div class="balance-meta">
+        <span class="mobile-balance-pill desktop-balance-pill">{fmt($balance, displayCurrency)}</span>
+      </div>
     </div>
   </div>
 
@@ -725,6 +908,7 @@
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
+        {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
         <div class="hand-col">
 
           <!-- Cards area -->
@@ -745,12 +929,12 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
-                <div class="sb-col">
+                {#if reserveSideBetLane}
+                <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled}>
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    {#if isBet && activeSb === sb.k}
+                    {#if $sideBetsEnabled && isBet && activeSb === sb.k}
                       <!-- Expanded: show inline wager input -->
                       <div class="sb-box sb-box-editing" on:click|stopPropagation>
                         <span class="sb-box-label" class:sb-box-label-pp={sb.k === 'pp'} class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
@@ -769,7 +953,7 @@
                       <div
                         class="sb-box"
                         class:sb-active={hand.sb[sb.k] > 0}
-                        on:click={() => !isReplay && isBet && toggleSbSelect(idx, sb.k)}
+                        on:click={() => $sideBetsEnabled && !isReplay && isBet && toggleSbSelect(idx, sb.k)}
                       >
                         <span class="sb-box-label" class:sb-box-label-pp={sb.k === 'pp'} class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
                         {#if hand.sb[sb.k] > 0}
@@ -968,176 +1152,6 @@
         </div>
       {/if}
 
-      {#if showFeltPanel}
-        <div class="panel felt-panel" on:click={stopEvent}>
-          <div class="texture-picker">
-            {#each TEXTURE_ROWS as row}
-              <div class="texture-row texture-row-{row.textureKey}">
-                <div class="texture-row-label">{row.textureLabel}</div>
-                {#each row.options as option}
-                  <button
-                    class={`btn-theme texture-option theme-${option.key}`}
-                    class:active={feltTheme === option.key}
-                    on:click={() => applyFeltTheme(option.key)}
-                    aria-label={option.key}
-                  >
-                    <span class="texture-option-swatch" aria-hidden="true"></span>
-                  </button>
-                {/each}
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/if}
-
-      <!-- About panel -->
-      {#if showAbout}
-        <div class="panel about-panel" on:click={stopEvent}>
-          <div class="panel-title">About</div>
-          <div class="about-text">We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one.</div>
-        </div>
-      {/if}
-
-      <!-- Rules panel -->
-      {#if $showRules}
-        <div class="panel rules-panel" on:click={stopEvent}>
-          <div class="panel-title">How To Play</div>
-
-          <div class="rules-section"><strong>The Goal</strong>
-            <div class="rules-text">Get a hand closer to 21 than the dealer without going over. If you go over 21, you bust and lose automatically, even if the dealer busts too.</div>
-          </div>
-
-          <div class="rules-section"><strong>Card Values</strong>
-            <div class="rules-text">Number cards are worth their face value. Jack, Queen, and King are worth 10. Aces are worth either 1 or 11, whichever helps your hand more.</div>
-          </div>
-
-          <div class="rules-section"><strong>How a Round Works</strong>
-            <div class="rules-text">{isSocial
-              ? "You choose your play amount, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
-              : "You place your bet, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
-            }</div>
-          </div>
-
-          <div class="rules-section"><strong>Your Options</strong>
-            <div class="rules-text">
-              <strong>Hit</strong> - Take another card. You can keep hitting as many times as you want, as long as you don't bust.<br/><br/>
-              <strong>Stand</strong> - Keep your current hand and end your turn.<br/><br/>
-              <strong>Double Down</strong> - Double your original {isSocial ? 'play amount' : 'bet'} and receive exactly one more card, then you're done. No more hits after doubling. This is a power move when your hand is in a strong spot, like starting with a 10 or 11, because you're getting twice the money down when the odds favor you.<br/><br/>
-              <strong>Split</strong> - If your first two cards are the same rank (e.g. two 8s, or two Kings), you can split them into two separate hands. Each hand gets a new card drawn, your {isSocial ? 'play amount' : 'bet'} is duplicated, and you play them out independently. Split Aces receive only one card each and cannot be hit again.
-            </div>
-          </div>
-
-          <div class="rules-section"><strong>Blackjack</strong>
-            <div class="rules-text">{isSocial
-              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
-              : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
-            }</div>
-          </div>
-
-          <div class="rules-section"><strong>Insurance</strong>
-            <div class="rules-text">{isSocial
-              ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
-              : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
-            }</div>
-          </div>
-
-          <div class="rules-section"><strong>Payouts</strong>
-            <div class="rules-text">
-              Blackjack pays 7:5<br/>
-              Winning hand pays 1:1<br/>
-              Insurance pays 2:1
-            </div>
-          </div>
-
-          <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
-            <div class="rules-text">{isSocial
-              ? "Side plays are optional extra plays placed before the deal. They're independent from your main hand — you can win a side play and lose your main hand, or vice versa. Side plays are higher risk, higher reward, and have a lower RTP than the base game."
-              : "Side bets are optional extra bets placed before the deal. They're independent from your main hand, you can win a side bet and lose your main hand, or vice versa. Side bets are higher risk, higher reward, and have a lower RTP than the base game."
-            }</div>
-          </div>
-
-          <div class="rules-section"><strong>Perfect Pairs</strong>
-            <div class="rules-text rules-text-sm">{isSocial
-              ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
-              : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
-            }</div>
-            <table class="payout-table">
-              <tbody>
-                <tr><td>Perfect Pair (25:1)</td><td class="rules-example">Same rank, same suit. Example: two 7s of Hearts.</td></tr>
-                <tr><td>Coloured Pair (12:1)</td><td class="rules-example">Same rank, same color, different suit. Example: 7 of Hearts and 7 of Diamonds.</td></tr>
-                <tr><td>Mixed Pair (6:1)</td><td class="rules-example">Same rank, different color. Example: 7 of Hearts and 7 of Spades.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="rules-section"><strong>21+3</strong>
-            <div class="rules-text rules-text-sm">{isSocial
-              ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
-              : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
-            }</div>
-            <table class="payout-table">
-              <tbody>
-                <tr><td>Suited Trips (100:1)</td><td class="rules-example">All three cards same rank and same suit. Example: three 8s of Clubs.</td></tr>
-                <tr><td>Straight Flush (40:1)</td><td class="rules-example">Three consecutive ranks, all the same suit. Example: 4, 5, 6 of Hearts.</td></tr>
-                <tr><td>Three of a Kind (30:1)</td><td class="rules-example">All three cards same rank, any suits. Example: three Kings.</td></tr>
-                <tr><td>Straight (10:1)</td><td class="rules-example">Three consecutive ranks, any suits. Ace counts high or low.</td></tr>
-                <tr><td>Flush (5:1)</td><td class="rules-example">All three cards same suit, any ranks. Example: any three Diamonds.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="rules-section"><strong>Game Rules</strong>
-            <div class="rules-text">
-              6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
-              Dealer hits soft 17 and stands on hard 17.<br/>
-              Double down available on hard 9, 10, or 11 only.<br/>
-              One card only after doubling. No further hits.<br/>
-              Split available when first two cards share the same rank.<br/>
-              No re-splitting. No double after split.<br/>
-              Split Aces receive one card only and stand automatically.<br/>
-              Maximum starting hands: 4 on desktop, 2 on mobile.
-            </div>
-          </div>
-
-          <div class="rules-section"><strong>Autoplay Modes</strong>
-            <div class="rules-text">
-              <strong>Conservative</strong> - Lower-variance play. Avoids marginal doubles, stands earlier in riskier spots. Designed to preserve your bankroll over longer sessions.<br/><br/>
-              <strong>Optimal</strong> - Perfect basic strategy for this build. The mathematically strongest mode and the closest thing to ideal play.<br/><br/>
-              <strong>High Roller</strong> - Aggressive action. Leans into doubles and pressure spots for higher volatility, bigger swings, and faster exposure.
-            </div>
-            <table class="payout-table strategy-table">
-              <thead>
-                <tr><th></th><th>Conservative</th><th>Optimal</th><th>High Roller</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Hard 9 double</td><td>Never</td><td>vs 3-6 only</td><td>vs any</td></tr>
-                <tr><td>Hard 10 double</td><td>vs 2-9</td><td>vs 2-9</td><td>vs any</td></tr>
-                <tr><td>Hard 11 double</td><td>vs 2-9</td><td>vs any incl. A</td><td>vs any</td></tr>
-                <tr><td>Soft doubles</td><td>Never</td><td>Full chart</td><td>More aggressive</td></tr>
-                <tr><td>Surrender</td><td>Never</td><td>Yes</td><td>Never</td></tr>
-                <tr><td>Splits</td><td>Aces + 8s only</td><td>Full chart</td><td>Full chart +</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          {#if showRtp}
-            <div class="rules-section"><strong>RTP (Return to Player)</strong>
-              <div class="rules-text rtp">{#if isSocial}
-                Blackjack - 97.9%*<br/>
-                Perfect Pairs - 86.4952%<br/>
-                21+3 - 85.7029%<br/><br/>
-                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions.
-              {:else}
-                Blackjack - 97.9%*<br/>
-                Perfect Pairs - 86.4952%<br/>
-                21+3 - 85.7029%<br/><br/>
-                *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
-              {/if}</div>
-            </div>
-          {/if}
-        </div>
-      {/if}
-
 
       <!-- Reload -->
       {#if $balance <= 0 && isBet}
@@ -1269,7 +1283,7 @@
 
   .balance-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 12px;
     padding: 6px 14px 4px;
     min-height: 42px;
@@ -1278,10 +1292,150 @@
     flex-shrink: 0;
     background: transparent;
   }
+  .header-controls,
   .utility-btns {
     display: flex;
     gap: 6px;
     align-items: center;
+  }
+  .header-controls {
+    position: relative;
+    gap: 12px;
+  }
+  .options-anchor {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .btn-options-toggle,
+  .btn-options-item {
+    font-family: 'Oswald', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .btn-options-toggle {
+    min-height: 34px !important;
+    padding: 6px 14px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(203, 218, 206, 0.36) !important;
+    background: rgba(10, 30, 19, 0.86) !important;
+    color: rgba(212, 223, 213, 0.86) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+  }
+  .btn-options-toggle.active {
+    border-color: rgba(212, 168, 64, 0.7) !important;
+    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%) !important;
+    color: #fff4cf !important;
+  }
+  .mobile-balance-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.25);
+    background: rgba(10, 30, 19, 0.34);
+    color: #ffffff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10.24px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: none;
+    backdrop-filter: blur(2px);
+  }
+  .desktop-balance-pill {
+    font-size: 16px;
+    min-height: 38px;
+    padding: 0 14px;
+  }
+  .desktop-options-drawer {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: auto;
+    width: min(180px, calc(100vw - 24px));
+    z-index: 40;
+    padding: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .desktop-options-drawer.full-panel-open {
+    width: min(480px, calc(100vw - 24px));
+  }
+  .mobile-options-column {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .btn-options-item {
+    min-height: 30px !important;
+    padding: 6px 8px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(232, 212, 139, 0.2) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .btn-options-item.active {
+    border-color: rgba(212, 168, 64, 0.7) !important;
+    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%) !important;
+    color: #fff4cf !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 235, 173, 0.18),
+      0 0 0 1px rgba(212, 168, 64, 0.08);
+  }
+  .btn-options-toggle-pill {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 0;
+    text-align: center;
+  }
+  .btn-options-toggle-label {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+  .options-mini-toggle {
+    width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    background: #050505;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .desktop-options-panel {
+    margin-top: 2px;
+    max-height: min(58vh, 520px);
+    overflow-y: auto;
+  }
+  .felt-panel-inline,
+  .rules-panel-inline,
+  .about-panel-inline {
+    width: 100%;
+  }
+  .sb-col-hidden {
+    display: none;
   }
   .btn-utility {
     font-family: 'Oswald', sans-serif !important;
@@ -1323,7 +1477,6 @@
   .session-pill.positive { color: #85f7ad; }
   .session-pill.negative { color: #ff8e8e; }
   .balance-meta {
-    margin-left: auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
