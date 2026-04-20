@@ -986,7 +986,7 @@
         {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
         {@const isSplitRight = useSplitRows && idx === splitRightIdx}
         <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}
-          style={isSplitRight ? 'position:absolute;left:calc(50% + 90px);top:0;flex:none;width:auto;transform:none;--mobile-geometry-scale:calc(0.9 * 0.7);' : ''}>
+          style={isSplitRight ? 'position:absolute;left:calc(50% + 90px);top:50%;flex:none;width:auto;transform:translateY(-50%);--mobile-geometry-scale:calc(0.9 * 0.7);' : ''}>
 
           <!-- Cards area -->
           <div class="cards-area">
@@ -3184,7 +3184,7 @@
     }
     /* ── SPLIT LAYOUT ── */
     /* Make the row the offset origin for the absolutely-positioned split-right hand */
-    .hands-row.two.has-split {
+    .hands-row.has-split {
       position: relative;
     }
     /* Split-right is taken out of flex flow and pinned to the right.
