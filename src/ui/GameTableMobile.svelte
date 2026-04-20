@@ -286,6 +286,7 @@
     }
     return -1;
   })();
+  $: if (useSplitRows) console.log('SPLIT DEBUG', { numSlots: $numSlots, splitRightIdx, useSplitRows, hands: handEntries.map(e => ({ idx: e.idx, isSplit: e.hand.isSplit, cards: e.hand.cards.length })) });
 
   // ─── SIDE BET SELECTION ───
   let sbSelect = {}; // { [handIdx]: "pp" | "t" | null }
