@@ -275,7 +275,17 @@
 
   $: handEntries = $hands.map((hand, idx) => ({ hand, idx }));
   $: useSplitRows = !isDesktop && handEntries.some(({ hand }) => hand.isSplit);
-  $: handRows = useSplitRows ? groupMobileSplitRows(handEntries) : [handEntries];
+  $: handRows = [handEntries];
+  $: splitRightIdx = (() => {
+    let first = true;
+    for (const { hand, idx } of handEntries) {
+      if (hand.isSplit) {
+        if (first) { first = false; continue; }
+        return idx;
+      }
+    }
+    return -1;
+  })();
 
   // ─── SIDE BET SELECTION ───
   let sbSelect = {}; // { [handIdx]: "pp" | "t" | null }
@@ -962,7 +972,7 @@
     <!-- PLAYER HANDS -->
     <div class="hands-stack">
       {#each handRows as row, rowIdx}
-      <div class="hands-row" class:multi class:two={$numSlots === 2} class:four={$numSlots === 4} class:has-split={useSplitRows}>
+      <div class="hands-row" class:multi class:two={$numSlots === 2 || useSplitRows} class:four={$numSlots === 4} class:has-split={useSplitRows}>
       <!-- Invisible left spacer mirrors ghost width — keeps card stack at screen center -->
       {#if rowIdx === 0 && (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div class="ghost-spacer"></div>
@@ -973,7 +983,7 @@
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
         {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
-        {@const isSplitRight = useSplitRows && hand.isSplit && rowHandIndex === 1}
+        {@const isSplitRight = useSplitRows && idx === splitRightIdx}
         <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}
           style={isSplitRight ? 'position:absolute;left:calc(50% + 90px);top:0;flex:none;width:auto;transform:none;--mobile-geometry-scale:calc(0.9 * 0.7);' : ''}>
 
