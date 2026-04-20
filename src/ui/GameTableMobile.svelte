@@ -3171,6 +3171,89 @@
       align-self: center;
     }
     /* ── SPLIT LAYOUT ── */
+    /* Outer container mirrors hands-row.two: column flex, same padding + gap */
+    .hands-stack.split-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      padding-top: 22px;
+      padding-bottom: 22px;
+      width: 100%;
+    }
+    .hands-stack.split-stack .hands-row {
+      flex: 0 0 auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Split-row needs relative so split-right can be absolutely placed */
+    .hands-stack.split-stack .hands-row.split-row {
+      position: relative;
+    }
+    /* First row locks to same Y as first hand-col in phase-play two-hand */
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row:first-child {
+      transform: translateY(60px);
+    }
+    /* Last row locks to same Y as second hand-col in phase-play two-hand */
+    .table-wrap.phase-play .hands-stack.split-stack .hands-row:last-child {
+      transform: translateY(50px);
+    }
+    /* Non-split-right cards: exact same size as .hands-row.two .card */
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .card,
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .card.small,
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .card-placeholder,
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .card-placeholder.small {
+      width: 86px !important;
+      height: 146px !important;
+      border-radius: 8px;
+    }
+    /* Non-split-right cards-area: same scale as .hands-row.two .cards-area */
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .cards-area {
+      width: min(100%, 308px);
+      margin: 0 auto;
+      transform: scale(0.875);
+      transform-origin: top center;
+    }
+    /* Non-split-right cards-row: same as .hands-row.two .cards-row */
+    .table-wrap .hands-stack.split-stack .hand-col:not(.split-right) .cards-row {
+      align-items: flex-start;
+      justify-content: center;
+      min-height: 0;
+      transform: translateX(-10px);
+    }
+    /* Split-right: out of flow, overlaid to the right of the split hand */
+    .table-wrap .hands-row.split-row .split-right {
+      position: absolute;
+      left: calc(50% + 90px);
+      top: 0;
+      flex: none;
+      width: auto;
+    }
+    /* Split-right cards: 30% smaller than regular two-hand cards */
+    .table-wrap .hands-row.split-row .split-right .card,
+    .table-wrap .hands-row.split-row .split-right .card.small,
+    .table-wrap .hands-row.split-row .split-right .card-placeholder,
+    .table-wrap .hands-row.split-row .split-right .card-placeholder.small {
+      width: calc(86px * 0.7) !important;
+      height: calc(146px * 0.7) !important;
+      border-radius: 6px;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-rank {
+      font-size: calc(17px * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-suit-sm {
+      font-size: calc(14px * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .card-center {
+      font-size: calc(34px * 0.7) !important;
+    }
+    .table-wrap .hands-row.split-row .split-right .hv-bubble {
+      font-size: calc(15px * 0.7) !important;
+      padding: 1px 7px !important;
+      border-radius: 7px !important;
+    }
     /* ── END SPLIT LAYOUT ── */
     .hand-col { width: 100%; align-items: center; }
     .cards-col { width: auto; min-width: 0; }
