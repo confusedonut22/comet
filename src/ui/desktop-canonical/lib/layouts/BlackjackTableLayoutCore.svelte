@@ -1208,6 +1208,12 @@
         </div>
       {:else if isResult}
         <div class="center-deal-wrap">
+          {#if $message}
+            {@const tone = navResultTone($message)}
+            <span class="result-pill" class:win={tone === 'win'} class:lose={tone === 'lose'}>
+              {tone === 'win' ? 'Player' : tone === 'lose' ? 'Dealer' : 'Push'}
+            </span>
+          {/if}
           <div class="table-footer-row" class:with-add-slot={useFooterAddSlot}>
             {#if useFooterAddSlot}
               <button class="footer-add-slot" on:click={addSlot} aria-label="Add hand">+</button>
@@ -1226,12 +1232,6 @@
               </button>
             {:else}
               <div class="table-footer-spacer" aria-hidden="true"></div>
-            {/if}
-            {#if $message}
-              {@const tone = navResultTone($message)}
-              <span class="result-pill" class:win={tone === 'win'} class:lose={tone === 'lose'}>
-                {tone === 'win' ? 'Player' : tone === 'lose' ? 'Dealer' : 'Push'}
-              </span>
             {/if}
           </div>
         </div>
@@ -1578,10 +1578,12 @@
     gap: 2px;
   }
   .total-wager-sub {
-    font-size: 12px;
+    font-size: 15px;
     font-family: 'Oswald', sans-serif;
-    letter-spacing: 0.05em;
-    color: rgba(232, 212, 139, 0.75);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(242, 232, 208, 0.6);
     white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
@@ -1652,7 +1654,7 @@
       radial-gradient(ellipse at 50% 33%, rgba(26, 86, 49, 0.24), rgba(8, 31, 19, 0.68) 70%, rgba(4, 17, 11, 0.88) 100%),
       linear-gradient(180deg, rgba(21, 67, 40, 0.12), rgba(8, 26, 16, 0.28)),
       url('/green.felt.final.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: multiply, color, normal;
@@ -1720,7 +1722,7 @@
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
       url('/velvet-blue-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1731,7 +1733,7 @@
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
       url('/velvet-emerald-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1742,7 +1744,7 @@
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
       url('/velvet-black-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1753,7 +1755,7 @@
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
       url('/ridge-blue-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1764,7 +1766,7 @@
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
       url('/ridge-green-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1775,7 +1777,7 @@
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
       url('/ridge-black-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1786,7 +1788,7 @@
       radial-gradient(circle at 50% 16%, rgba(106, 145, 224, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 56, 112, 0.26), rgba(7, 20, 52, 0.78) 70%, rgba(4, 12, 32, 0.92) 100%),
       url('/felt-blue-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1797,7 +1799,7 @@
       radial-gradient(circle at 50% 16%, rgba(127, 214, 174, 0.18), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(24, 110, 83, 0.26), rgba(9, 58, 40, 0.78) 70%, rgba(4, 31, 22, 0.92) 100%),
       url('/felt-green-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -1808,7 +1810,7 @@
       radial-gradient(circle at 50% 16%, rgba(116, 126, 151, 0.12), transparent 38%),
       radial-gradient(ellipse at 50% 33%, rgba(36, 46, 66, 0.28), rgba(12, 16, 24, 0.82) 70%, rgba(6, 8, 12, 0.94) 100%),
       url('/felt-black-base.png');
-    background-size: cover, cover, 112% auto;
+    background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
     background-blend-mode: screen, multiply, normal;
@@ -2609,7 +2611,8 @@
   /* CENTERED DEAL */
   .center-deal-wrap {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding: 8px 0 0;
     flex-shrink: 0;
   }
@@ -2690,23 +2693,22 @@
     filter: drop-shadow(0 0 8px rgba(232, 212, 139, 0.4));
   }
   .result-pill {
-    flex-shrink: 0;
-    padding: 0 14px;
-    height: 38px;
+    display: block;
+    text-align: center;
+    margin: 0 auto 8px;
+    padding: 5px 22px;
     border-radius: 999px;
     border: 1.5px solid rgba(255,255,255,0.18);
     background: rgba(0,0,0,0.35);
     font-family: 'Oswald', sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: #bfb49a;
     white-space: nowrap;
     pointer-events: none;
+    width: fit-content;
   }
   .result-pill.win  { color: #2db870; border-color: rgba(45,184,112,0.45); background: rgba(45,184,112,0.1); }
   .result-pill.lose { color: #ef5350; border-color: rgba(239,83,80,0.4);  background: rgba(239,83,80,0.08); }
