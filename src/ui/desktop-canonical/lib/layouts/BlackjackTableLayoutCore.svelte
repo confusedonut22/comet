@@ -543,7 +543,6 @@
   class:phase-bet={isBet}
   class:phase-play={isPlay || isIns || isDealer}
   class:phase-result={isResult}
-  class:phase-auto={$autoPlay}
   class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
   class:felt-theme-velvet-green={feltTheme === "velvet-green"}
   class:felt-theme-velvet-black={feltTheme === "velvet-black"}
@@ -930,7 +929,16 @@
               class:mid-cards-col={isDesktop && $numSlots === 3}
               class:compact-cards-col={isDesktop && $numSlots >= 4}
             >
-              <!-- sb-col beside cards-stack so bubble/cards/bet all share one center axis -->
+              <!-- Hand value bubble -->
+              {#if hand.cards.length > 0}
+                <div class="hv-bubble" class:active={isActive} style="color: {hand.result ? rc : C.cr}">
+                  {handMsg(hand)}
+                </div>
+              {:else}
+                <div class="hv-bubble hv-bubble-placeholder" aria-hidden="true">00</div>
+              {/if}
+
+              <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
                 {#if reserveSideBetLane}
                 <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled}>
@@ -966,15 +974,6 @@
                     {/if}
                   {/each}
                 </div>
-                {/if}
-                <div class="cards-stack">
-                <!-- Hand value bubble -->
-                {#if hand.cards.length > 0}
-                  <div class="hv-bubble" class:active={isActive} style="color: {hand.result ? rc : C.cr}">
-                    {handMsg(hand)}
-                  </div>
-                {:else}
-                  <div class="hv-bubble hv-bubble-placeholder" aria-hidden="true">00</div>
                 {/if}
                 <div class="cards-row" style="min-height: {cardsRowMinH}px; position: relative;">
                 {#if (isBet || isResult) && !isReplay && $numSlots > 1}
@@ -1029,31 +1028,35 @@
                   ></div>
                 {/if}
               </div><!-- end cards-row -->
-                <!-- Wager controls: 1/2·Bet·2x centered under cards -->
-                {#if hand.bet > 0 || isBet || isResult}
-                  <div class="bet-bar">
-                    {#if (isBet || isResult) && !isReplay && !activeSb}
-                      <div class="bet-amount-row bet-amount-row-with-actions">
-                        <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 0.5)}>1/2</button>
-                        <div class="bet-input-shell">
-                          <span class="bet-amount-prefix">{isSocial ? 'Play' : 'Bet'}</span>
-                          <input
-                            class="bet-amount-input"
-                            inputmode="decimal"
-                            value={betDraft[idx] ?? fmt(hand.bet, $runtimeCurrency).replace(/[^0-9.]/g, '')}
-                            on:click|stopPropagation
-                            on:input={(event) => onBetDraftInput(idx, event.currentTarget.value)}
-                            on:blur={() => commitBetDraft(idx)}
-                            on:keydown={(event) => event.key === 'Enter' && commitBetDraft(idx)}
-                          />
-                        </div>
-                        <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 2)}>2x</button>
-                      </div>
-                    {/if}
-                  </div>
-                {/if}
-                </div><!-- end cards-stack -->
               </div><!-- end sb-and-cards -->
+
+
+
+
+              <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
+              {#if hand.bet > 0 || isBet || isResult}
+                <div class="bet-bar">
+                  {#if (isBet || isResult) && !isReplay && !activeSb}
+                    <div class="bet-amount-row bet-amount-row-with-actions">
+                      <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 0.5)}>1/2</button>
+                      <div class="bet-input-shell">
+                        <span class="bet-amount-prefix">{isSocial ? 'Play' : 'Bet'}</span>
+                        <input
+                          class="bet-amount-input"
+                          inputmode="decimal"
+                          value={betDraft[idx] ?? fmt(hand.bet, $runtimeCurrency).replace(/[^0-9.]/g, '')}
+                          on:click|stopPropagation
+                          on:input={(event) => onBetDraftInput(idx, event.currentTarget.value)}
+                          on:blur={() => commitBetDraft(idx)}
+                          on:keydown={(event) => event.key === 'Enter' && commitBetDraft(idx)}
+                        />
+                      </div>
+                      <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 2)}>2x</button>
+                    </div>
+                  {/if}
+
+                </div>
+              {/if}
 
               <!-- Chip buttons -->
               {#if isBet && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
@@ -1214,10 +1217,7 @@
       <!-- Action area: hidden outside active play, except autoplay stop bar -->
       {#if $autoPlay && !isReplay && !autoplayDisabled}
         <div class="action-area-fixed">
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
-            <span class="stop-bar-label">STOP AUTOPLAY</span>
-            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
-          </button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
         </div>
       {:else if isPlay && activeH && !isReplay}
         <div class="action-area-fixed">
@@ -2449,7 +2449,6 @@
   .sb-and-cards { display: flex; flex-direction: row; align-items: center; gap: 4px; }
   .sb-col     { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
   .cards-col  { min-width: 104px; display: flex; flex-direction: column; align-items: center; }
-  .cards-stack { display: flex; flex-direction: column; align-items: center; }
 
   .sb-box {
     width: 72px; min-height: 52px;
@@ -2651,11 +2650,6 @@
     transition: background 0.15s;
   }
   .btn-stop-bar:hover { background: #e53935; }
-  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 14px; }
-  .stop-bar-label { font-size: 28px; font-weight: 700; letter-spacing: 0.08em; }
-  .stop-bar-count { font-size: 18px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; }
-  /* Hide deal button globally during autoplay — prevents layout shift */
-  .table-wrap.phase-auto .center-deal-wrap { display: none; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
