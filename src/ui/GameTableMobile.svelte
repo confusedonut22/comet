@@ -618,7 +618,12 @@
   class:felt-theme-felt-green={feltTheme === "felt-green"}
   class:felt-theme-felt-black={feltTheme === "felt-black"}
 >
-  <span class="mobile-balance-pill">{fmt($balance, displayCurrency)}</span>
+  <div class="balance-pill-stack">
+    <span class="mobile-balance-pill">{fmt($balance, displayCurrency)}</span>
+    {#if $totalCost > 0}
+      <span class="total-wager-sub">{isSocial ? 'Total Play' : 'Total Wager'}: {fmt($totalCost, displayCurrency)}</span>
+    {/if}
+  </div>
   <button
     class="btn-tab btn-options-toggle mobile-options-launch"
     class:active={showOptionsMenu || $showRules || showAbout}
@@ -633,7 +638,7 @@
     </div>
   {:else if $sessionBootstrap.status === "error"}
     <div class="launch-warning">
-      Authenticate failed: {$sessionBootstrap.error}
+      {isReplay ? 'Replay failed' : 'Authenticate failed'}: {$sessionBootstrap.error}
     </div>
   {:else if $rgsError}
     <div class="launch-warning">
@@ -723,7 +728,7 @@
             <div class="rules-text">
               <strong>Hit</strong> - Take another card. You can keep hitting as many times as you want, as long as you don't bust.<br/><br/>
               <strong>Stand</strong> - Keep your current hand and end your turn.<br/><br/>
-              <strong>Double Down</strong> - Double your original {isSocial ? 'play amount' : 'bet'} and receive exactly one more card, then you're done. No more hits after doubling. This is a power move when your hand is in a strong spot, like starting with a 10 or 11, because you're getting twice the money down when the odds favor you.<br/><br/>
+              <strong>Double Down</strong> - Double your original {isSocial ? 'play amount' : 'bet'} and receive exactly one more card, then you're done. No more hits after doubling. This is a power move when your hand is in a strong spot, like starting with a 10 or 11, because you're getting twice the {isSocial ? 'amount in play' : 'money down'} when the odds favor you.<br/><br/>
               <strong>Split</strong> - If your first two cards are the same rank (e.g. two 8s, or two Kings), you can split them into two separate hands. Each hand gets a new card drawn, your {isSocial ? 'play amount' : 'bet'} is duplicated, and you play them out independently. Split Aces receive only one card each and cannot be hit again.
             </div>
           </div>
@@ -818,7 +823,7 @@
                 Blackjack - 97.9%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
-                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions.
+                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
               {:else}
                 Blackjack - 97.9%*<br/>
                 Perfect Pairs - 86.4952%<br/>
@@ -3370,11 +3375,26 @@
     .balance-meta-mobile {
       display: none !important;
     }
-    .mobile-balance-pill {
+    .balance-pill-stack {
       position: fixed;
       top: max(6px, env(safe-area-inset-top));
       left: 12px;
       z-index: 46;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+    .balance-pill-stack .total-wager-sub {
+      font-size: 9px;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.05em;
+      color: rgba(212, 168, 64, 0.75);
+      white-space: nowrap;
+      padding-left: 4px;
+    }
+    .mobile-balance-pill {
+      position: static;
       display: inline-flex;
       align-items: center;
       justify-content: center;

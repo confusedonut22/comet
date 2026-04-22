@@ -742,6 +742,9 @@
 
       <div class="balance-meta">
         <span class="mobile-balance-pill desktop-balance-pill">{fmt($balance, displayCurrency)}</span>
+        {#if $totalCost > 0}
+          <span class="total-wager-sub">{isSocial ? 'Total Play' : 'Total Wager'}: {fmt($totalCost, displayCurrency)}</span>
+        {/if}
       </div>
     </div>
   </div>
@@ -959,12 +962,12 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
+                {#if (($sideBetsEnabled && (isBet || isResult)) || hand.sb.pp > 0 || hand.sb.t > 0)}
                 <div class="sb-col">
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    {#if $sideBetsEnabled && isBet && activeSb === sb.k}
+                    {#if $sideBetsEnabled && (isBet || isResult) && activeSb === sb.k}
                       <!-- Expanded: show inline wager input -->
                       <div class="sb-box sb-box-editing" on:click|stopPropagation>
                         <span class="sb-box-label" class:sb-box-label-pp={sb.k === 'pp'} class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
@@ -983,7 +986,7 @@
                       <div
                         class="sb-box"
                         class:sb-active={hand.sb[sb.k] > 0}
-                        on:click={() => $sideBetsEnabled && !isReplay && isBet && toggleSbSelect(idx, sb.k)}
+                        on:click={() => $sideBetsEnabled && !isReplay && (isBet || isResult) && toggleSbSelect(idx, sb.k)}
                       >
                         <span class="sb-box-label" class:sb-box-label-pp={sb.k === 'pp'} class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
                         {#if hand.sb[sb.k] > 0}
@@ -1078,7 +1081,7 @@
               {/if}
 
               <!-- Chip buttons -->
-              {#if isBet && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
+              {#if (isBet || isResult) && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
                 <div class="chip-btns">
                   {#if !activeSb && $runtimeConfig?.betLevels?.length}
                     {#each $runtimeConfig.betLevels as betLevel}
@@ -1222,7 +1225,13 @@
             >
               {dealLabel}
             </button>
-            <div class="table-footer-spacer" aria-hidden="true"></div>
+            {#if showDesktopAutoplay}
+              <button class="btn-auto-launch btn-autoplay-image" class:active={$showAuto} on:click={toggleAutoPanel} aria-label="Autoplay">
+                <img src={AUTOPLAY_BUTTON} alt="" />
+              </button>
+            {:else}
+              <div class="table-footer-spacer" aria-hidden="true"></div>
+            {/if}
           </div>
         </div>
       {:else if isBet}
@@ -1562,8 +1571,17 @@
   .session-pill.negative { color: #ff8e8e; }
   .balance-meta {
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+  }
+  .total-wager-sub {
+    font-size: 12px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.05em;
+    color: rgba(212, 168, 64, 0.7);
+    white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
   .rgs-status  { margin-left: 10px; font-size: 14px; color: #e8d48b; white-space: nowrap; }
@@ -3117,6 +3135,9 @@
     .hands-row.count-fourplus { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
     .hands-row.three-up {
       padding-top: 25px;
+    }
+    .table-wrap.phase-play .hands-row.count-fourplus .hand-col:nth-child(n + 4) {
+      transform: translateY(25px);
     }
     .table-wrap.phase-result .hands-row.count-fourplus .hand-col:nth-child(n + 4) {
       transform: translateY(20px);
