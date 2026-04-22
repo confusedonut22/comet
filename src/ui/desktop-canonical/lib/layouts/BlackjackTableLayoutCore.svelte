@@ -930,16 +930,7 @@
               class:mid-cards-col={isDesktop && $numSlots === 3}
               class:compact-cards-col={isDesktop && $numSlots >= 4}
             >
-              <!-- Hand value bubble -->
-              {#if hand.cards.length > 0}
-                <div class="hv-bubble" class:active={isActive} style="color: {hand.result ? rc : C.cr}">
-                  {handMsg(hand)}
-                </div>
-              {:else}
-                <div class="hv-bubble hv-bubble-placeholder" aria-hidden="true">00</div>
-              {/if}
-
-              <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
+              <!-- sb-col beside cards-stack so bubble/cards/bet all share one center axis -->
               <div class="sb-and-cards">
                 {#if reserveSideBetLane}
                 <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled}>
@@ -975,6 +966,15 @@
                     {/if}
                   {/each}
                 </div>
+                {/if}
+                <div class="cards-stack">
+                <!-- Hand value bubble -->
+                {#if hand.cards.length > 0}
+                  <div class="hv-bubble" class:active={isActive} style="color: {hand.result ? rc : C.cr}">
+                    {handMsg(hand)}
+                  </div>
+                {:else}
+                  <div class="hv-bubble hv-bubble-placeholder" aria-hidden="true">00</div>
                 {/if}
                 <div class="cards-row" style="min-height: {cardsRowMinH}px; position: relative;">
                 {#if (isBet || isResult) && !isReplay && $numSlots > 1}
@@ -1029,35 +1029,31 @@
                   ></div>
                 {/if}
               </div><!-- end cards-row -->
-              </div><!-- end sb-and-cards -->
-
-
-
-
-              <!-- Wager controls: 1/2·Bet·2x first, then dollar amount below -->
-              {#if hand.bet > 0 || isBet || isResult}
-                <div class="bet-bar">
-                  {#if (isBet || isResult) && !isReplay && !activeSb}
-                    <div class="bet-amount-row bet-amount-row-with-actions">
-                      <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 0.5)}>1/2</button>
-                      <div class="bet-input-shell">
-                        <span class="bet-amount-prefix">{isSocial ? 'Play' : 'Bet'}</span>
-                        <input
-                          class="bet-amount-input"
-                          inputmode="decimal"
-                          value={betDraft[idx] ?? fmt(hand.bet, $runtimeCurrency).replace(/[^0-9.]/g, '')}
-                          on:click|stopPropagation
-                          on:input={(event) => onBetDraftInput(idx, event.currentTarget.value)}
-                          on:blur={() => commitBetDraft(idx)}
-                          on:keydown={(event) => event.key === 'Enter' && commitBetDraft(idx)}
-                        />
+                <!-- Wager controls: 1/2·Bet·2x centered under cards -->
+                {#if hand.bet > 0 || isBet || isResult}
+                  <div class="bet-bar">
+                    {#if (isBet || isResult) && !isReplay && !activeSb}
+                      <div class="bet-amount-row bet-amount-row-with-actions">
+                        <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 0.5)}>1/2</button>
+                        <div class="bet-input-shell">
+                          <span class="bet-amount-prefix">{isSocial ? 'Play' : 'Bet'}</span>
+                          <input
+                            class="bet-amount-input"
+                            inputmode="decimal"
+                            value={betDraft[idx] ?? fmt(hand.bet, $runtimeCurrency).replace(/[^0-9.]/g, '')}
+                            on:click|stopPropagation
+                            on:input={(event) => onBetDraftInput(idx, event.currentTarget.value)}
+                            on:blur={() => commitBetDraft(idx)}
+                            on:keydown={(event) => event.key === 'Enter' && commitBetDraft(idx)}
+                          />
+                        </div>
+                        <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 2)}>2x</button>
                       </div>
-                      <button class="bet-quick-btn" on:click={() => adjustBetByFactor(idx, 2)}>2x</button>
-                    </div>
-                  {/if}
-
-                </div>
-              {/if}
+                    {/if}
+                  </div>
+                {/if}
+                </div><!-- end cards-stack -->
+              </div><!-- end sb-and-cards -->
 
               <!-- Chip buttons -->
               {#if isBet && !isReplay && (betEntryMode === 'chips' || betEntryMode === 'both')}
@@ -2453,6 +2449,7 @@
   .sb-and-cards { display: flex; flex-direction: row; align-items: center; gap: 4px; }
   .sb-col     { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
   .cards-col  { min-width: 104px; display: flex; flex-direction: column; align-items: center; }
+  .cards-stack { display: flex; flex-direction: column; align-items: center; }
 
   .sb-box {
     width: 72px; min-height: 52px;
