@@ -1187,10 +1187,6 @@
       {/if}
 
 
-      {#if isPlay || isResult}
-        {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
-        <div class="action-wager-label">{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
-      {/if}
       <!-- Deal / autoplay row -->
       {#if isReplay}
         <div class="center-deal-wrap">
@@ -1450,8 +1446,8 @@
   .desktop-options-drawer {
     position: absolute;
     top: calc(100% + 8px);
-    left: 0;
-    right: auto;
+    right: 0;
+    left: auto;
     width: min(180px, calc(100vw - 24px));
     z-index: 40;
     padding: 4px 0 0;
@@ -1583,7 +1579,7 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(242, 232, 208, 0.6);
+    color: #e8d48b;
     white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
@@ -3154,7 +3150,7 @@
       gap: 0;
     }
     .hands-row.count-one { grid-template-columns: max-content; }
-    .hands-row.count-two { grid-template-columns: repeat(2, max-content); column-gap: 125px; }
+    .hands-row.count-two { grid-template-columns: repeat(2, max-content); column-gap: 125px; margin-top: -10px; }
     .hands-row.count-three { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
     .hands-row.count-fourplus { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
     .hands-row.three-up {
