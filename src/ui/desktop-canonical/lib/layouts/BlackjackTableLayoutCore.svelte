@@ -1218,7 +1218,10 @@
       <!-- Action area: hidden outside active play, except autoplay stop bar -->
       {#if $autoPlay && !isReplay && !autoplayDisabled}
         <div class="action-area-fixed">
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
+            <span class="stop-bar-label">STOP AUTOPLAY</span>
+            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
+          </button>
         </div>
       {:else if isPlay && activeH && !isReplay}
         <div class="action-area-fixed">
@@ -2651,6 +2654,11 @@
     transition: background 0.15s;
   }
   .btn-stop-bar:hover { background: #e53935; }
+  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .stop-bar-label { font-size: 28px; font-weight: 700; letter-spacing: 0.08em; }
+  .stop-bar-count { font-size: 18px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; }
+  /* Hide deal button globally during autoplay — prevents layout shift */
+  .table-wrap.phase-auto .center-deal-wrap { display: none; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
@@ -3326,9 +3334,6 @@
       box-shadow: inset 0 14px 18px rgba(0, 0, 0, 0.16);
     }
     .table-wrap.stacked-layout.phase-play .center-deal-wrap {
-      display: none;
-    }
-    .table-wrap.phase-auto .center-deal-wrap {
       display: none;
     }
     .table-wrap.stacked-layout.phase-play .action-grid {
