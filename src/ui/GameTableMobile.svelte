@@ -156,8 +156,12 @@
   $: netNegative = $netPosition < 0;
 
   // ─── RESPONSIVE INLINE STYLE VALUES ───
+  $: twoHandLiveSpacingBoost = $numSlots === 2 && (isPlay || isResult) ? 60 : 0;
   $: cardOverlap      = isDesktop ? (isWideDesktop ? '-41px' : '-46px') : '-18px';
-  $: cardOverlapSmall = isDesktop ? (isWideDesktop ? '-55px' : '-57px') : '-13px';
+  $: cardOverlapSmall = (() => {
+    const base = isDesktop ? (isWideDesktop ? -55 : -57) : -13;
+    return `${base + twoHandLiveSpacingBoost}px`;
+  })();
   $: dealerOverlap    = isDesktop ? (isWideDesktop ? '-21px' : '-26px') : '-18px';
   $: isFour = $numSlots === 4;
   $: cardsRowMinH     = isDesktop ? (isFour ? 71 : (multi ? (isWideDesktop ? 117 : 138) : (isWideDesktop ? 149 : 176))) : (isFour ? 80 : (multi ? 113 : 146));
@@ -227,6 +231,7 @@
     if (isDesktop || !(isPlay || isResult) || Number.isNaN(baseOverlap)) {
       return i > 0 ? (multi ? cardOverlapSmall : cardOverlap) : "0";
     }
+    if ($numSlots === 2) return `${-54 + twoHandLiveSpacingBoost}px`;
     return "-54px";
   }
 
@@ -746,6 +751,13 @@
               Insurance pays 2:1
             </div>
           </div>
+          <div class="rules-section"><strong>Maximum Win</strong>
+            <div class="rules-text rules-text-sm">
+              Base game: 2× per hand (double down). Up to 2 hands on mobile.<br/>
+              Perfect Pairs: 25× side bet (Perfect Pair)<br/>
+              21+3: 100× side bet (Suited Trips)
+            </div>
+          </div>
           <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
             <div class="rules-text">{isSocial
               ? "Side plays are optional extra plays placed before the deal. They're independent from your main hand — you can win a side play and lose your main hand, or vice versa. Side plays are higher risk, higher reward, and have a lower RTP than the base game."
@@ -1223,7 +1235,10 @@
       <!-- Action area: stop bar replaces grid during autoplay, both same fixed height -->
       <div class="action-area-fixed">
         {#if $autoPlay && !isReplay && !autoplayDisabled}
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
+            <span class="stop-bar-label">STOP AUTOPLAY</span>
+            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
+          </button>
         {:else if isPlay && activeH && !isReplay}
           <div class="action-grid">
             <button class="btn-action" on:click={hit}>Hit</button>
@@ -1240,7 +1255,7 @@
       {/if}
 
       <!-- Deal button -->
-      {#if (isBet || isResult) && !isReplay}
+      {#if (isBet || isResult) && !isReplay && !$autoPlay}
         <div class="center-deal-wrap">
           <button
             class="btn-deal"
@@ -2618,6 +2633,9 @@
     transition: background 0.15s;
   }
   .btn-stop-bar:hover { background: #e53935; }
+  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .stop-bar-label { font-size: 28px; font-weight: 700; letter-spacing: 0.08em; }
+  .stop-bar-count { font-size: 18px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
