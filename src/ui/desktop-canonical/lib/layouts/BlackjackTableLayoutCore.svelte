@@ -1202,7 +1202,7 @@
             {isResult ? "Play Again" : "Play"}
           </button>
         </div>
-      {:else if (isBet || isResult)}
+      {:else if ((isBet || isResult) && !$autoPlay)}
         <div class="center-deal-wrap">
           <button
             class="btn-deal"
@@ -1217,7 +1217,10 @@
       <!-- Action area: hidden outside active play, except autoplay stop bar -->
       {#if $autoPlay && !isReplay && !autoplayDisabled}
         <div class="action-area-fixed">
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
+            <span class="stop-bar-label">STOP AUTOPLAY</span>
+            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
+          </button>
         </div>
       {:else if isPlay && activeH && !isReplay}
         <div class="action-area-fixed">
@@ -2650,6 +2653,9 @@
     transition: background 0.15s;
   }
   .btn-stop-bar:hover { background: #e53935; }
+  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .stop-bar-label { font-weight: 700; letter-spacing: 0.05em; }
+  .stop-bar-count { font-size: 0.85em; opacity: 0.85; font-variant-numeric: tabular-nums; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
