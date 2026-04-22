@@ -695,8 +695,8 @@
 
                 <div class="rules-section"><strong>Blackjack</strong>
                   <div class="rules-text">{isSocial
-                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
-                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
+                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
                   }</div>
                 </div>
 
@@ -709,7 +709,7 @@
 
                 <div class="rules-section"><strong>Payouts</strong>
                   <div class="rules-text">
-                    Blackjack pays 7:5<br/>
+                    Blackjack pays 3:2<br/>
                     Winning hand pays 1:1<br/>
                     Insurance pays 2:1
                   </div>
@@ -813,8 +813,8 @@
 
                 {#if showRtp}
                   <div class="rules-text rtp">{isSocial
-                    ? "ChadJack is a social casino game intended for entertainment only. No real money, prizes, or rewards are offered or implied. Base game RTP: 97.73%. Side plays carry a lower RTP and are optional. Malfunction voids all pays and plays. ChadJack™ is a trademark of Chad Labs."
-                    : "Base game RTP: 97.73%. Side bets carry a lower RTP and are optional. RTP is a long-run statistical average; individual session results will vary. Malfunction voids all pays and bets. ChadJack™ is a trademark of Chad Labs."
+                    ? "ChadJack is a social casino game intended for entertainment only. No real money, prizes, or rewards are offered or implied. Base game RTP: 97.2%. Side plays carry a lower RTP and are optional. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
+                    : "Base game RTP: 97.2%. Side bets carry a lower RTP and are optional. RTP is a long-run statistical average; individual session results will vary. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
                   }</div>
                 {/if}
               </div>
@@ -991,7 +991,7 @@
               <section class="desktop-info-card desktop-rules-summary">
                 <div class="desktop-info-section-title">Quick Read</div>
                 <div class="desktop-rules-grid">
-                  <div class="desktop-rule-stat"><span>Blackjack</span><strong>7 to 5</strong></div>
+                  <div class="desktop-rule-stat"><span>Blackjack</span><strong>3 to 2</strong></div>
                   <div class="desktop-rule-stat"><span>Insurance</span><strong>2 to 1</strong></div>
                   <div class="desktop-rule-stat"><span>Decks</span><strong>6 Deck Shoe</strong></div>
                   <div class="desktop-rule-stat"><span>Autoplay</span><strong>3 Modes</strong></div>
@@ -1027,8 +1027,8 @@
               <section class="desktop-info-card">
                 <div class="rules-section"><strong>Blackjack</strong>
                   <div class="rules-text">{isSocial
-                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
-                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
+                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
                   }</div>
                 </div>
 
@@ -1041,7 +1041,7 @@
 
                 <div class="rules-section"><strong>Payouts</strong>
                   <div class="rules-text">
-                    Blackjack pays 7:5<br/>
+                    Blackjack pays 3:2<br/>
                     Winning hand pays 1:1<br/>
                     Insurance pays 2:1
                   </div>
@@ -1093,12 +1093,12 @@
                 {#if showRtp}
                   <div class="rules-section"><strong>RTP (Return to Player)</strong>
                     <div class="rules-text rtp">{#if isSocial}
-                      Blackjack - 97.9%*<br/>
+                      Blackjack - 97.2%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
                       *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
                     {:else}
-                      Blackjack - 97.9%*<br/>
+                      Blackjack - 97.2%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
                       *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
@@ -1169,7 +1169,7 @@
         <div class="mid-zone">
           <div class="divider-row">
             <div class="divider-line"></div>
-            <span class="divider-label">Blackjack pays 7 to 5</span>
+            <span class="divider-label">Blackjack pays 3 to 2</span>
             <div class="divider-line"></div>
           </div>
         </div>

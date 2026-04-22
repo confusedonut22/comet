@@ -102,11 +102,25 @@
     return v;
   };
 
+  function detectPortraitLockedMobile() {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    const isMobileUa = /Android|iPhone|iPod|Mobile/i.test(ua);
+    const hasCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? navigator.maxTouchPoints > 0;
+    return isMobileUa && hasCoarsePointer;
+  }
+
   // ─── RESPONSIVE ───
   let windowWidth = 500;
   let windowHeight = 900;
-  $: isDesktop = windowWidth >= 768;
-  $: isMobileLandscape = !isDesktop && windowWidth > windowHeight;
+  let forceMobilePortrait = false;
+  $: {
+    windowWidth;
+    windowHeight;
+    forceMobilePortrait = detectPortraitLockedMobile();
+  }
+  $: isDesktop = windowWidth >= 768 && !forceMobilePortrait;
+  $: isMobileLandscape = forceMobilePortrait && windowWidth > windowHeight;
   $: introVideoSrc = isDesktop ? INTRO_VIDEO : INTRO_VIDEO_MOBILE;
   $: isWideDesktop = windowWidth >= 1280;
   $: {
@@ -736,8 +750,8 @@
           </div>
           <div class="rules-section"><strong>Blackjack</strong>
             <div class="rules-text">{isSocial
-              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
-              : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
+              : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
             }</div>
           </div>
           <div class="rules-section"><strong>Insurance</strong>
@@ -748,7 +762,7 @@
           </div>
           <div class="rules-section"><strong>Payouts</strong>
             <div class="rules-text">
-              Blackjack pays 7:5<br/>
+              Blackjack pays 3:2<br/>
               Winning hand pays 1:1<br/>
               Insurance pays 2:1
             </div>
@@ -824,12 +838,12 @@
           {#if showRtp}
             <div class="rules-section"><strong>RTP (Return to Player)</strong>
               <div class="rules-text rtp">{#if isSocial}
-                Blackjack - 97.9%*<br/>
+                Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
                 *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
               {:else}
-                Blackjack - 97.9%*<br/>
+                Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
                 *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
@@ -952,7 +966,7 @@
           </div>
           <div class="dealer-pays-wrap">
             <div class="dealer-pays-line"></div>
-            <div class="dealer-pays-copy">CHADJACK pays 7 to 5</div>
+            <div class="dealer-pays-copy">CHADJACK pays 3 to 2</div>
           </div>
         </div>
       {:else}
@@ -974,7 +988,7 @@
       <div class="divider-row">
         <div class="divider-line"></div>
       </div>
-      <div class="divider-copy">CHADJACK pays 7 to 5</div>
+      <div class="divider-copy">CHADJACK pays 3 to 2</div>
     </div>
     <!-- PLAYER HANDS -->
     <div class="hands-stack">
@@ -2995,7 +3009,7 @@
       /* Mobile bet-screen anchor lock */
       --bet-logo-top: calc(max(4px, env(safe-area-inset-top)) + 8px);
       --bet-divider-top: calc(max(4px, env(safe-area-inset-top)) + 150px);
-      --bet-single-hand-top: 148px;
+      --bet-single-hand-top: 126px;
       --bet-two-hand-top: 132px;
       --bet-hands-stack-top: 0px;
     }
@@ -3069,13 +3083,13 @@
       padding-bottom: 8px;
     }
     .felt.single-hand .hands-row {
-      padding-top: 68px;
+      padding-top: 42px;
     }
     .table-wrap.phase-bet .hands-row {
       padding-top: 20px;
     }
     .table-wrap.phase-bet .felt.single-hand .hands-row {
-      padding-top: 92px;
+      padding-top: 68px;
     }
     .table-wrap.phase-bet .hands-row.two {
       padding-top: var(--bet-two-hand-top);
@@ -3794,7 +3808,12 @@
     }
     .table-wrap.phase-play-single-hand .hands-stack,
     .table-wrap.phase-result-single-hand .hands-stack {
-      transform: translateY(40px);
+      transform: translateY(14px) scale(1.08);
+      transform-origin: top center;
+    }
+    .table-wrap.phase-bet .felt.single-hand .hands-stack {
+      transform: translateY(-6px) scale(1.08);
+      transform-origin: top center;
     }
     .table-wrap.phase-play .hands-row.multi {
       gap: 6px;
@@ -4626,7 +4645,7 @@
     transform: none !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateX(1px) !important;
+    transform: translateX(8px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
     transform: translateY(1px) !important;
