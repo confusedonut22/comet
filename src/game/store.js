@@ -12,7 +12,7 @@ import {
   settleDealerHands,
 } from "./roundSettlement.js";
 import { randomFact, getBadBeat } from "./content.js";
-import { playCardSnap, playDealSwoosh } from "./audio.js";
+import { playCardSnap, playDealSwoosh, playChipPlace, playStand, playDoubleDown, playSplit, playBust, playWin, playBlackjack, playLose, playPush, playInsurance } from "./audio.js";
 import {
   PHASE, SPEEDS, MONEY_SCALE, STARTING_BALANCE,
 } from "./constants.js";
@@ -500,6 +500,7 @@ export function addSideBetChip(idx, key, value) {
   if (get(replayMode)) return;
   const p = get(phase);
   if (p !== PHASE.BET && p !== PHASE.RESULT) return;
+  playChipPlace();
   const config = get(runtimeConfig);
   hands.update(hs => hs.map((h, i) =>
     i === idx
@@ -538,6 +539,7 @@ export function addChip(idx, value) {
   if (get(replayMode)) return;
   const p = get(phase);
   if (p !== PHASE.BET && p !== PHASE.RESULT) return;
+  playChipPlace();
   hands.update(hs => hs.map((h, i) =>
     i === idx ? { ...h, bet: h.bet + value } : h
   ));
@@ -702,6 +704,7 @@ export async function deal() {
 
 export function takeInsurance(take, customAmount = null) {
   if (get(replayMode)) return;
+  if (take) playInsurance();
   const $pend = get(pending);
   if (!$pend) return;
   const effectiveAmount = customAmount !== null ? customAmount : $pend.insuranceAmount;
@@ -824,6 +827,7 @@ export function hit() {
 
 export function stand() {
   if (get(replayMode)) return;
+  playStand();
   const $actH = get(activeHand);
   if (hasStakeSession()) {
     emitRoundEvent({
@@ -850,12 +854,12 @@ export function stand() {
 
 export function doubleDown() {
   if (get(replayMode)) return;
+  playDoubleDown();
   const $actH = get(activeHand);
   const $hands = get(hands);
   const h = $hands[$actH];
   if (get(balance) < h.bet) return;
   if (hasStakeSession()) {
-    playCardSnap();
     emitRoundEvent({
       type: "playerAction",
       action: "double",
@@ -896,6 +900,7 @@ export function doubleDown() {
 
 export function split() {
   if (get(replayMode)) return;
+  playSplit();
   const $actH    = get(activeHand);
   const $hands   = get(hands);
   const $balance = get(balance);
@@ -1027,6 +1032,9 @@ function runDealer(playerHands) {
 function finishRound(hs, dealerVal) {
   const anyLoss = hs.some(h => h.result === "lose" || h.result === "bust");
   const anyWin  = hs.some(h => h.result === "win"  || h.result === "blackjack");
+  const anyBust = hs.some(h => h.result === "bust");
+  const anyBJ   = hs.some(h => h.result === "blackjack");
+  const allPush = hs.every(h => h.result === "push");
 
   if (anyLoss && !anyWin) lossStreak.update(s => s + 1);
   else if (anyWin)        lossStreak.set(0);
@@ -1036,7 +1044,6 @@ function finishRound(hs, dealerVal) {
   if (h0 && (h0.result === "lose" || h0.result === "bust")) {
     const pv = h0.cards.length ? handValue(h0.cards) : 0;
     // bad beat messages disabled
-    // const bb = getBadBeat(...); if (bb) { ... }
   }
 
   const wins   = hs.filter(h => h.result === "win" || h.result === "blackjack").length;
@@ -1044,6 +1051,16 @@ function finishRound(hs, dealerVal) {
   if (wins > 0 && losses === 0)      message.set("You Win!");
   else if (losses > 0 && wins === 0) message.set("Dealer Wins");
   else                               message.set("");
+
+  // Sound: pick the most prominent outcome
+  try {
+    if (anyBJ && wins > 0 && losses === 0)   playBlackjack();
+    else if (anyWin && !anyLoss)             playWin();
+    else if (allPush)                        playPush();
+    else if (anyBust && !anyWin)             playBust();
+    else if (anyLoss && !anyWin)             playLose();
+    else if (anyWin)                         playWin(); // mixed — at least celebrate the win
+  } catch (_) {}
 
   phase.set(PHASE.RESULT);
   emitRoundEvent({
