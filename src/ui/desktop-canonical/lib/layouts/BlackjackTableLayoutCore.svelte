@@ -929,8 +929,8 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if reserveSideBetLane}
-                <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled}>
+                {#if isBet || isResult || hand.sb.pp > 0 || hand.sb.t > 0}
+                <div class="sb-col">
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
