@@ -18,7 +18,6 @@
   import { toggleMute, isMuted } from "../../../../game/audio.js";
   import INTRO_VIDEO from "../../../../assets/chad_labs_intro_powergrid_v7.mp4";
   import INTRO_VIDEO_MOBILE from "../../../../assets/chad_labs_intro_powergrid_v7_mobile.mp4";
-  import AUTOPLAY_BUTTON from "../../../../assets/autoplaybutton.png";
   import JACK_SPADES_CHADJACK from "../../../../assets/custom-face-cards/jack-spades-chadjack.png";
   import JACK_HEARTS_CHADJACK from "../../../../assets/custom-face-cards/jack-hearts-chadjack.png";
   import JACK_CLUBS_CHADJACK from "../../../../assets/custom-face-cards/jack-clubs-chadjack.png";
@@ -135,7 +134,6 @@
   $: isReplay = $replayMode;
   $: isSocial = $sessionQuery.social || $runtimeJurisdiction?.socialCasino === true;
   $: autoplayDisabled = $runtimeJurisdiction?.disabledAutoplay === true;
-  $: showDesktopAutoplay = $autoBetEnabled && !autoplayDisabled && (isBet || isResult);
   $: showRtp = $runtimeJurisdiction?.displayRTP !== false;
   $: availableSpeeds = Object.entries(SPEEDS).filter(([k]) => {
     if (k === '5x' && $runtimeJurisdiction?.disabledTurbo) return false;
@@ -161,12 +159,8 @@
   $: netNegative = $netPosition < 0;
 
   // ─── RESPONSIVE INLINE STYLE VALUES ───
-  $: twoHandLiveSpacingBoost = $numSlots === 2 && (isPlay || isResult) ? 60 : 0;
   $: cardOverlap      = isDesktop ? (isWideDesktop ? '-41px' : '-46px') : '-18px';
-  $: cardOverlapSmall = (() => {
-    const base = isDesktop ? (isWideDesktop ? -55 : -57) : -13;
-    return `${base + twoHandLiveSpacingBoost}px`;
-  })();
+  $: cardOverlapSmall = isDesktop ? (isWideDesktop ? '-55px' : '-57px') : '-13px';
   $: dealerOverlap    = isDesktop ? (isWideDesktop ? '-21px' : '-26px') : '-18px';
   $: isFour = $numSlots === 4;
   $: cardsRowMinH     = isDesktop ? (isFour ? 71 : (multi ? (isWideDesktop ? 117 : 138) : (isWideDesktop ? 149 : 176))) : (isFour ? 80 : (multi ? 113 : 146));
@@ -567,12 +561,7 @@
         </button>
 
         {#if showOptionsMenu}
-          <div
-            class="mobile-options-drawer desktop-options-drawer"
-            class:full-panel-open={$showRules || showAbout || showFeltPanel}
-            class:rules-fullscreen={$showRules}
-            on:click={stopEvent}
-          >
+          <div class="mobile-options-drawer desktop-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} on:click={stopEvent}>
             <div class="mobile-options-column">
               <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
                 <span class="btn-options-toggle-label">Autobet</span>
@@ -919,7 +908,7 @@
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const reserveSideBetLane = !hand.isSplit}
+        {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
         <div class="hand-col">
 
           <!-- Cards area -->
@@ -1098,42 +1087,21 @@
       {/each}
 
       <!-- Add hand ghost -->
-      {#if (isBet || isResult) && !isReplay && ($numSlots < $maxHands || showDesktopAutoplay)}
+      {#if (isBet || isResult) && !isReplay && $numSlots < $maxHands}
         <div
           class="ghost-wrap"
           class:with-cards={$hands.some((h) => h.cards.length > 0)}
           class:mid-ghost-wrap={isDesktop && $numSlots === 3}
           class:compact-ghost-wrap={isDesktop && $numSlots >= 4}
         >
-          <div class="ghost-row">
-            {#if $numSlots < $maxHands}
-              <!-- svelte-ignore a11y-click-events-have-key-events -->
-              <!-- svelte-ignore a11y-no-static-element-interactions -->
-              <div
-                class="ghost"
-                class:mid-ghost={isDesktop && $numSlots === 3}
-                class:compact-ghost={isDesktop && $numSlots >= 4}
-                on:click={addSlot}
-              >+</div>
-            {:else}
-              <div
-                class="ghost ghost-placeholder"
-                class:mid-ghost={isDesktop && $numSlots === 3}
-                class:compact-ghost={isDesktop && $numSlots >= 4}
-                aria-hidden="true"
-              ></div>
-            {/if}
-            {#if showDesktopAutoplay}
-              <button
-                class="btn-autoplay-image ghost-autoplay"
-                type="button"
-                aria-label="Autoplay"
-                on:click={toggleAutoPanel}
-              >
-                <img src={AUTOPLAY_BUTTON} alt="" />
-              </button>
-            {/if}
-          </div>
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <div
+            class="ghost"
+            class:mid-ghost={isDesktop && $numSlots === 3}
+            class:compact-ghost={isDesktop && $numSlots >= 4}
+            on:click={addSlot}
+          >+</div>
         </div>
       {/if}
         </div>
@@ -1202,7 +1170,7 @@
             {isResult ? "Play Again" : "Play"}
           </button>
         </div>
-      {:else if ((isBet || isResult) && !$autoPlay)}
+      {:else if (isBet || isResult)}
         <div class="center-deal-wrap">
           <button
             class="btn-deal"
@@ -1217,10 +1185,7 @@
       <!-- Action area: hidden outside active play, except autoplay stop bar -->
       {#if $autoPlay && !isReplay && !autoplayDisabled}
         <div class="action-area-fixed">
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
-            <span class="stop-bar-label">STOP AUTOPLAY</span>
-            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
-          </button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
         </div>
       {:else if isPlay && activeH && !isReplay}
         <div class="action-area-fixed">
@@ -1403,40 +1368,6 @@
   .desktop-options-drawer.full-panel-open {
     width: min(480px, calc(100vw - 24px));
   }
-  .desktop-options-drawer.rules-fullscreen {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100vw;
-    min-height: 100dvh;
-    padding: 56px 12px 12px;
-    background: rgba(4, 16, 10, 0.94);
-    backdrop-filter: blur(10px);
-    justify-content: flex-start;
-    overflow-y: auto;
-    pointer-events: auto;
-  }
-  .desktop-options-drawer.rules-fullscreen .mobile-options-column {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    width: min(180px, calc(100vw - 24px));
-    margin-left: auto;
-    background: linear-gradient(180deg, rgba(4, 16, 10, 0.98) 0%, rgba(4, 16, 10, 0.82) 100%);
-    padding-bottom: 8px;
-  }
-  .desktop-options-drawer.rules-fullscreen .rules-panel-inline {
-    width: calc(100vw - 24px);
-    max-width: none;
-    height: calc(100dvh - 128px);
-    min-height: calc(100dvh - 128px);
-    margin: 12px 0 0;
-    padding: 16px 18px 24px;
-    border-radius: 18px;
-    overflow-y: auto;
-    background: linear-gradient(180deg, rgba(18, 24, 20, 0.96) 0%, rgba(10, 14, 12, 0.98) 100%);
-  }
   .mobile-options-column {
     display: grid;
     grid-template-columns: 1fr;
@@ -1504,8 +1435,7 @@
     width: 100%;
   }
   .sb-col-hidden {
-    visibility: hidden;
-    pointer-events: none;
+    display: none;
   }
   .btn-utility {
     font-family: 'Oswald', sans-serif !important;
@@ -2509,14 +2439,6 @@
   .ghost-spacer { width: 104px; flex-shrink: 0; visibility: hidden; pointer-events: none; }
 
   .ghost-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 28px; }
-  .ghost-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: nowrap;
-    gap: 12px;
-    width: 100%;
-  }
   .ghost {
     width: 104px; height: 146px; border-radius: 8px;
     border: 2.5px dashed rgba(255,255,255,0.55);
@@ -2526,30 +2448,7 @@
     font-size: 28px; color: #f2e8d0; opacity: 0.2;
     transition: all 0.2s;
   }
-  .ghost-placeholder {
-    visibility: hidden;
-    pointer-events: none;
-  }
   .ghost:hover { opacity: 0.4; }
-  .btn-autoplay-image {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    margin: 0;
-    cursor: pointer;
-  }
-  .btn-autoplay-image img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .ghost-autoplay {
-    width: 104px;
-    flex: 0 0 auto;
-  }
 
   .btn-remove { display: none; }
   .btn-remove-x {
@@ -2653,9 +2552,6 @@
     transition: background 0.15s;
   }
   .btn-stop-bar:hover { background: #e53935; }
-  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 12px; }
-  .stop-bar-label { font-weight: 700; letter-spacing: 0.05em; }
-  .stop-bar-count { font-size: 0.85em; opacity: 0.85; font-variant-numeric: tabular-nums; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
