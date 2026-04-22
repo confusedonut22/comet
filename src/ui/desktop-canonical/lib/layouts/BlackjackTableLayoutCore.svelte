@@ -1163,31 +1163,40 @@
         {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
         <div class="action-wager-label">{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
       {/if}
-      <!-- Deal button sits above action grid -->
+      <!-- Deal / autoplay row -->
       {#if isReplay}
         <div class="center-deal-wrap">
           <button class="btn-deal active" on:click={exitReplayMode}>
             {isResult ? "Play Again" : "Play"}
           </button>
         </div>
-      {:else if (isBet || isResult)}
+      {:else if $autoPlay && !autoplayDisabled}
+        <!-- Autoplay active: stop bar fills deal slot, no layout shift -->
         <div class="center-deal-wrap">
-          <button
-            class="btn-deal"
-            class:active={$canDeal || isResult}
-            disabled={!$canDeal && !isResult}
-            on:click={($canDeal || isResult) ? onDeal : undefined}
-          >
-            {dealLabel}
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
+            <span class="stop-bar-label">STOP AUTOPLAY</span>
+            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
           </button>
         </div>
-      {/if}
-      <!-- Action area: hidden outside active play, except autoplay stop bar -->
-      {#if $autoPlay && !isReplay && !autoplayDisabled}
-        <div class="action-area-fixed">
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
+      {:else if (isBet || isResult)}
+        <div class="center-deal-wrap">
+          <div class="deal-auto-row">
+            <button
+              class="btn-deal"
+              class:active={$canDeal || isResult}
+              disabled={!$canDeal && !isResult}
+              on:click={($canDeal || isResult) ? onDeal : undefined}
+            >
+              {dealLabel}
+            </button>
+            {#if !autoplayDisabled}
+              <button class="btn-auto-launch" class:active={$showAuto} on:click={toggleAutoPanel}>Auto</button>
+            {/if}
+          </div>
         </div>
-      {:else if isPlay && activeH && !isReplay}
+      {/if}
+      <!-- Action area -->
+      {#if isPlay && activeH && !isReplay && !$autoPlay}
         <div class="action-area-fixed">
           <div class="action-grid">
             <button class="btn-action" on:click={hit}>Hit</button>
@@ -2493,8 +2502,49 @@
     padding: 8px 0 0;
     flex-shrink: 0;
   }
-  .center-deal-wrap .btn-deal {
+  /* deal-auto-row: deal button + auto launch button side by side */
+  .deal-auto-row {
+    display: flex;
+    gap: 8px;
     width: min(600px, calc(100% - 12px));
+    align-items: stretch;
+  }
+  .deal-auto-row .btn-deal {
+    flex: 1;
+  }
+  .btn-auto-launch {
+    flex-shrink: 0;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1.5px solid #d4a840;
+    background: transparent;
+    color: #d4a840;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .btn-auto-launch.active {
+    background: rgba(212,168,64,0.15);
+    border-color: #e8d48b;
+    color: #e8d48b;
+  }
+  /* Stop bar lives in center-deal-wrap during autoplay */
+  .center-deal-wrap .btn-stop-bar {
+    width: min(600px, calc(100% - 12px));
+    min-height: 65px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  .stop-bar-label { font-weight: 700; letter-spacing: 0.05em; }
+  .stop-bar-count { font-size: 0.78em; opacity: 0.82; font-variant-numeric: tabular-nums; }
+  .center-deal-wrap .btn-deal {
+    width: min(360px, calc(100% - 12px));
     min-height: 65px;
     font-size: 25px;
   }
@@ -2533,15 +2583,12 @@
       inset 0 0 0 1px rgba(255,255,255,0.04),
       inset 0 -12px 18px rgba(0,0,0,0.35);
   }
-  /* Full-width red stop bar replaces action buttons during autoplay */
+  /* Stop bar base styles (scoped via center-deal-wrap above) */
   .btn-stop-bar {
-    width: 100%;
-    min-height: 86px;
     padding: 0;
     background: #c62828;
-    color: #000;
+    color: #fff;
     font-family: 'Oswald', sans-serif;
-    font-size: 28px;
     font-weight: 700;
     border: none;
     border-radius: 8px;
