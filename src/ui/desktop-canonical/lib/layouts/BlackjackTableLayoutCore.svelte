@@ -228,7 +228,7 @@
   }
 
   function resultColor(result) {
-    if (result === "win" || result === "blackjack") return "#66ff88";
+    if (result === "win" || result === "blackjack") return "#2db870";
     if (result === "push") return C.cd;
     return C.rd;
   }
@@ -556,6 +556,12 @@
 >
   <!-- BALANCE -->
   <div class="balance-row">
+    <div class="balance-meta">
+      <span class="mobile-balance-pill desktop-balance-pill">{fmt($balance, displayCurrency)}</span>
+      {#if $totalCost > 0}
+        <span class="total-wager-sub">{isSocial ? 'Total Play' : 'Total Wager'}: {fmt($totalCost, displayCurrency)}</span>
+      {/if}
+    </div>
     <div class="header-controls" on:click={stopEvent}>
       <div class="options-anchor">
         <button
@@ -740,12 +746,6 @@
         {/if}
       </div>
 
-      <div class="balance-meta">
-        <span class="mobile-balance-pill desktop-balance-pill">{fmt($balance, displayCurrency)}</span>
-        {#if $totalCost > 0}
-          <span class="total-wager-sub">{isSocial ? 'Total Play' : 'Total Wager'}: {fmt($totalCost, displayCurrency)}</span>
-        {/if}
-      </div>
     </div>
   </div>
 
@@ -905,14 +905,9 @@
       <div class="playfield-main">
         <!-- FIXED HEIGHT MIDDLE ZONE — always 87px, locks player cards to y=422 -->
         <div class="mid-zone">
-          <div class="divider-row" class:has-result={$message && isResult && isDesktop}>
+          <div class="divider-row">
             <div class="divider-line"></div>
             <span class="divider-label">Blackjack pays 7 to 5</span>
-            {#if $message && isResult && isDesktop}
-              <div class="divider-result-msg">
-                <span class="nav-result-text" class:win={navResultTone($message) === 'win'} class:lose={navResultTone($message) === 'lose'}>{$message}</span>
-              </div>
-            {/if}
             <div class="divider-line"></div>
           </div>
         </div>
@@ -1232,6 +1227,12 @@
             {:else}
               <div class="table-footer-spacer" aria-hidden="true"></div>
             {/if}
+            {#if $message}
+              {@const tone = navResultTone($message)}
+              <span class="result-pill" class:win={tone === 'win'} class:lose={tone === 'lose'}>
+                {tone === 'win' ? 'Player' : tone === 'lose' ? 'Dealer' : 'Push'}
+              </span>
+            {/if}
           </div>
         </div>
       {:else if isBet}
@@ -1372,7 +1373,7 @@
 
   .balance-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 12px;
     padding: 6px 14px 4px;
     min-height: 42px;
@@ -1572,7 +1573,7 @@
   .balance-meta {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: center;
     gap: 2px;
   }
@@ -1580,7 +1581,7 @@
     font-size: 12px;
     font-family: 'Oswald', sans-serif;
     letter-spacing: 0.05em;
-    color: rgba(212, 168, 64, 0.7);
+    color: rgba(232, 212, 139, 0.75);
     white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
@@ -2070,7 +2071,7 @@
     letter-spacing: 0.04em;
     animation: fadeIn 0.3s ease;
   }
-  .dealer-result-text.win  { color: #66ff88; }
+  .dealer-result-text.win  { color: #2db870; }
   .dealer-result-text.lose { color: #ef5350; }
 
   /* FIXED HEIGHT MID ZONE — keeps player cards locked */
@@ -2688,6 +2689,27 @@
   .btn-auto-launch.active {
     filter: drop-shadow(0 0 8px rgba(232, 212, 139, 0.4));
   }
+  .result-pill {
+    flex-shrink: 0;
+    padding: 0 14px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.35);
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bfb49a;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .result-pill.win  { color: #2db870; border-color: rgba(45,184,112,0.45); background: rgba(45,184,112,0.1); }
+  .result-pill.lose { color: #ef5350; border-color: rgba(239,83,80,0.4);  background: rgba(239,83,80,0.08); }
   /* Stop bar lives in center-deal-wrap during autoplay */
   .center-deal-wrap .btn-stop-bar {
     width: min(600px, calc(100% - 12px));
@@ -3572,7 +3594,7 @@
     text-transform: uppercase;
     animation: fadeIn 0.3s ease;
   }
-  .nav-result-text.win  { color: #66ff88; }
+  .nav-result-text.win  { color: #2db870; }
   .nav-result-text.lose { color: #ef5350; }
 
   /* ANIMATIONS */
