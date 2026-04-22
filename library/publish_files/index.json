@@ -1,0 +1,63 @@
+{
+  "bundleVersion": 1,
+  "draft": false,
+  "notes": [
+    "Stake-style math export for ChadJack with the frozen 8-mode submission matrix.",
+    "simulation_number is a sequential integer id for each unique round record.",
+    "round_probability is a normalized probability (frequency / total_rounds) so all weights sum to 1.0.",
+    "payoutMultiplier is a float ratio of total_returned / total_wagered, not a percentage.",
+    "Full split support is included: same-rank split rounds, split aces receive one card each, DAS=False, and no re-splitting.",
+    "Side bets are included only in the frozen single-hand and symmetric two-hand submission modes.",
+    "Insurance, doubles, and splits remain in-round events and are not separate starting modes."
+  ],
+  "modes": [
+    {
+      "name": "double_213_symmetric",
+      "cost": 4,
+      "lookupTableFile": "double_213_symmetric.csv",
+      "gameLogicFile": "double_213_symmetric.jsonl.zst"
+    },
+    {
+      "name": "double_base",
+      "cost": 2,
+      "lookupTableFile": "double_base.csv",
+      "gameLogicFile": "double_base.jsonl.zst"
+    },
+    {
+      "name": "double_both_symmetric",
+      "cost": 6,
+      "lookupTableFile": "double_both_symmetric.csv",
+      "gameLogicFile": "double_both_symmetric.jsonl.zst"
+    },
+    {
+      "name": "double_pp_symmetric",
+      "cost": 4,
+      "lookupTableFile": "double_pp_symmetric.csv",
+      "gameLogicFile": "double_pp_symmetric.jsonl.zst"
+    },
+    {
+      "name": "single_213",
+      "cost": 2,
+      "lookupTableFile": "single_213.csv",
+      "gameLogicFile": "single_213.jsonl.zst"
+    },
+    {
+      "name": "single_base",
+      "cost": 1,
+      "lookupTableFile": "single_base.csv",
+      "gameLogicFile": "single_base.jsonl.zst"
+    },
+    {
+      "name": "single_both",
+      "cost": 3,
+      "lookupTableFile": "single_both.csv",
+      "gameLogicFile": "single_both.jsonl.zst"
+    },
+    {
+      "name": "single_pp",
+      "cost": 2,
+      "lookupTableFile": "single_pp.csv",
+      "gameLogicFile": "single_pp.jsonl.zst"
+    }
+  ]
+}

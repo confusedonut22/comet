@@ -69,7 +69,7 @@ export const sideBetsEnabled = writable(true);
 // intro opacity for fade
 export const introOp    = writable(1);
 
-const SPLIT_HAND_LIMIT = 4;
+const SPLIT_HAND_LIMIT = 6; // max 6 total hands; 6→no split, 5→1, 4→2, 3→3 more
 
 // ─── DERIVED ───
 
@@ -907,7 +907,7 @@ export function split() {
 
   const h = $hands[$actH];
   if (!h || h.cards.length !== 2) return;
-  if (h.isSplit) return;
+  if (h.isSplit || h.isAceSplit) return;         // split hands can never be re-split
   if ($hands.length >= SPLIT_HAND_LIMIT) return;
   if ($balance < h.bet) return;
 

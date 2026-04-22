@@ -14,7 +14,7 @@
   import { launchWarnings, replayMode, sessionQuery } from "../game/session.js";
   import { sessionBootstrap } from "../game/bootstrap.js";
   import { formatCurrencyAmount, formatSessionDuration, formatSignedMoney } from "../game/sessionDisplay.js";
-  import { toggleMute, isMuted } from "../game/audio.js";
+  import { toggleMute, isMuted, setMuted } from "../game/audio.js";
   import INTRO_VIDEO from "../assets/chad_labs_intro_powergrid_v7.mp4";
   import INTRO_VIDEO_MOBILE from "../assets/chad_labs_intro_powergrid_v7_mobile.mp4";
   import AUTOPLAY_BUTTON from "../assets/autoplaybutton.png";
@@ -503,6 +503,8 @@
         window.screen.orientation.lock("portrait").catch(() => {});
       }
     } catch {}
+    setMuted(false);
+    soundMuted = false;
     if (typeof window !== "undefined") {
       const savedTheme = window.localStorage.getItem(FELT_THEME_STORAGE_KEY);
       const legacyThemeMap = {
@@ -620,7 +622,7 @@
 >
   <div class="balance-pill-stack">
     <span class="mobile-balance-pill">{fmt($balance, displayCurrency)}</span>
-    {#if $totalCost > 0}
+    {#if $totalCost > 0 && (isPlay || isResult)}
       <span class="total-wager-sub">{isSocial ? 'Total Play' : 'Total Wager'}: {fmt($totalCost, displayCurrency)}</span>
     {/if}
   </div>
@@ -792,9 +794,11 @@
               Double down available on hard 9, 10, or 11 only.<br/>
               One card only after doubling. No further hits.<br/>
               Split available when first two cards share the same rank.<br/>
-              No re-splitting. No double after split.<br/>
+              Maximum of 6 hands on the table.<br/>
+              Split limits depend on active hands: 3 hands on table -> split 3 more, 4 hands -> split 2 more, 5 hands -> split 1 more, 6 hands -> no more splits.<br/>
+              No double after split.<br/>
               Split Aces receive one card only and stand automatically.<br/>
-              Maximum starting hands: 4 on desktop, 2 on mobile.
+              Maximum starting hands: 6 on desktop, 2 on mobile.
             </div>
           </div>
           <div class="rules-section"><strong>Autoplay Modes</strong>
@@ -837,10 +841,7 @@
       {#if showAbout}
         <div class="panel about-panel about-panel-inline" on:click={stopEvent}>
           <div class="panel-title">About</div>
-          <div class="about-text">{isSocial
-            ? "Built for social casino play. Side plays, multiple hands, and autoplay across three strategies. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token that may be redeemable for prizes where permitted. No purchase is necessary, void where prohibited, and players should play responsibly."
-            : "We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one."
-          }</div>
+          <div class="about-text">We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one.</div>
         </div>
       {/if}
     </div>
@@ -3386,12 +3387,17 @@
       gap: 3px;
     }
     .balance-pill-stack .total-wager-sub {
-      font-size: 9px;
+      font-size: 10.24px;
       font-family: 'Oswald', sans-serif;
-      letter-spacing: 0.05em;
-      color: rgba(212, 168, 64, 0.75);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #d4a840;
       white-space: nowrap;
       padding-left: 4px;
+      text-transform: uppercase;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.42),
+        0 0 8px rgba(4, 24, 14, 0.55);
     }
     .mobile-balance-pill {
       position: static;
@@ -4007,8 +4013,12 @@
     .table-wrap.phase-play .sb-box-editing,
     .table-wrap.phase-result .sb-box,
     .table-wrap.phase-result .sb-box-editing {
-      width: 40px;
-      min-height: 34px;
+      width: 38px;
+      min-width: 38px;
+      max-width: 38px;
+      height: 38px;
+      min-height: 38px;
+      max-height: 38px;
       padding: 0;
       border-width: 1.8px;
       border-radius: 7px;
@@ -4367,12 +4377,12 @@
     }
     .table-wrap.phase-play .hands-row.two .sb-box,
     .table-wrap.phase-play .hands-row.two .sb-box-editing {
-      width: 35.9px !important;
-      min-width: 35.9px !important;
-      max-width: 35.9px !important;
-      height: 32.4px !important;
-      min-height: 32.4px !important;
-      max-height: 32.4px !important;
+      width: 38px !important;
+      min-width: 38px !important;
+      max-width: 38px !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
       padding: 0 !important;
       border-color: #ffffff !important;
     }
@@ -4598,16 +4608,25 @@
     transform: none !important;
   }
   .table-wrap.phase-play-single-hand .felt.single-hand .sb-and-cards {
-    transform: translateY(1px) !important;
+    width: max-content !important;
+    max-width: none !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    margin: 0 auto !important;
+    transform: none !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .cards-row {
     transform: none !important;
   }
   .table-wrap.phase-play-single-hand .felt.single-hand .sb-col {
-    transform: translateX(5px) !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    margin-right: 0 !important;
+    transform: none !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateX(20px) !important;
+    transform: translateX(1px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
     transform: translateY(1px) !important;
@@ -4647,12 +4666,23 @@
     margin-left: 0 !important;
     align-self: center !important;
   }
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-box,
+  .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+  }
   .table-wrap.phase-result .sb-box,
   .table-wrap.phase-result .sb-box-editing {
-    width: 36px !important;
-    min-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 0 !important;
@@ -4672,12 +4702,13 @@
     transform: translateY(-1.5px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
-    width: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    transform: translateX(-21px) !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    transform: none !important;
     overflow: hidden !important;
     position: relative !important;
     z-index: 2 !important;
@@ -4981,7 +5012,7 @@
 
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type .cards-col.has-sidebets .bet-bar,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type .bet-bar {
-      transform: translate(26px, 1px) scale(0.8) !important;
+      transform: translate(26px, 5px) scale(0.8) !important;
     }
 
     .table-wrap.phase-bet .hands-row.two .sb-col {

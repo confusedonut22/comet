@@ -168,6 +168,7 @@
   $: isThreeDesktop = isDesktop && $numSlots === 3;
   $: useSecondRowCardSize = isDesktop && $numSlots > 3;
   $: desktopUiZoom = isDesktop ? ($numSlots <= 3 ? 0.96 : 0.8) : 1;
+  $: desktopInfoOverlayOpen = $showRules || showAbout || showFeltPanel;
   $: useFooterAddSlot = isDesktop && !isReplay && (isBet || isResult) && $numSlots >= 1 && $numSlots <= 3 && $numSlots < $maxHands;
   $: cardsRowMinH     = isDesktop ? (isFour ? 71 : (multi ? (isWideDesktop ? 117 : 138) : (isWideDesktop ? 149 : 176))) : (isFour ? 80 : (multi ? 113 : 146));
   $: handColMaxW      = isDesktop ? (multi ? (isWideDesktop ? '325px' : '390px') : (isWideDesktop ? '507px' : '598px')) : (multi ? '260px' : '416px');
@@ -180,12 +181,14 @@
     if (soft) return false;
     return total === 9 || total === 10 || total === 11;
   })();
+  // Split rule: max 6 total hands, no re-splitting.
+  // 6 hands → no split | 5 → 1 more | 4 → 2 more | 3 → 3 more (always capped at 6)
   $: canSplit  = activeH
     && !activeH.isSplit
     && !activeH.isAceSplit
     && activeH.cards.length === 2
     && $balance >= activeH.bet
-    && $hands.length < 4
+    && $hands.length < 6
     && activeH.cards[0].rank === activeH.cards[1].rank;
   $: isBadBeat = isResult && $message;
   $: dealLabel = $autoPlay ? `Auto ${$autoCount}/${$autoMax}` : isDealer ? "Dealing..." : isIns ? "Insurance..." : isResult ? "Next Hand" : "Deal";
@@ -360,7 +363,8 @@
     showAuto.set(false);
     showRules.set(false);
     showFeltPanel = false;
-    showOptionsMenu = true;
+    showOptionsMenu = false;
+    autoConfirmOpen = false;
   }
 
   function applyFeltTheme(themeKey) {
@@ -376,8 +380,14 @@
     showAuto.set(false);
     showRules.set(false);
     showAbout = false;
-    showOptionsMenu = true;
+    showOptionsMenu = false;
     autoConfirmOpen = false;
+  }
+
+  function closeInfoOverlay() {
+    showRules.set(false);
+    showAbout = false;
+    showFeltPanel = false;
   }
 
   // ─── PER-HAND INSURANCE ───
@@ -419,7 +429,7 @@
     autoConfirmOpen = false;
     showFeltPanel = false;
     showAbout = false;
-    showOptionsMenu = true;
+    showOptionsMenu = false;
   }
 
   function toggleOptionsMenu(event) {
@@ -573,25 +583,60 @@
         </button>
 
         {#if showOptionsMenu}
-          <div class="mobile-options-drawer desktop-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} on:click={stopEvent}>
-            <div class="mobile-options-column">
+          <div class="mobile-options-drawer desktop-options-drawer" class:full-panel-open={showFeltPanel} on:click={stopEvent}>
+            <div class="desktop-options-shell">
+              <div class="desktop-options-head">
+                <div>
+                  <div class="desktop-panel-kicker">Table Controls</div>
+                  <div class="desktop-options-title">Options</div>
+                </div>
+                <div class="desktop-options-status">{soundMuted ? 'Muted' : 'Live Audio'}</div>
+              </div>
+            <div class="mobile-options-column desktop-options-grid">
               <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
-                <span class="btn-options-toggle-label">Autobet</span>
-                <span class="options-mini-toggle" aria-hidden="true">{#if $autoBetEnabled}✓{/if}</span>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">Autobet</span>
+                  <span class="desktop-option-meta">Keep your base wager loaded between hands</span>
+                </span>
+                <span class="options-mini-toggle" aria-hidden="true">{#if $autoBetEnabled}On{:else}Off{/if}</span>
               </button>
               <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$sideBetsEnabled} on:click={toggleSideBetsSetting}>
-                <span class="btn-options-toggle-label">Sidebets</span>
-                <span class="options-mini-toggle" aria-hidden="true">{#if $sideBetsEnabled}✓{/if}</span>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">Sidebets</span>
+                  <span class="desktop-option-meta">Perfect Pairs and 21+3 at every seat</span>
+                </span>
+                <span class="options-mini-toggle" aria-hidden="true">{#if $sideBetsEnabled}On{:else}Off{/if}</span>
               </button>
-              <button class="btn-tab btn-options-item" class:active={showFeltPanel} on:click={toggleFeltPanel}>Texture</button>
-              <button class="btn-tab btn-options-item" class:active={$showRules} on:click={toggleRulesPanel}>Rules</button>
-              <button class="btn-tab btn-options-item btn-mute" class:muted={soundMuted} on:click={onToggleMute}>{soundMuted ? 'Unmute' : 'Sound'}</button>
-              <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>About</button>
+              <button class="btn-tab btn-options-item" class:active={showFeltPanel} on:click={toggleFeltPanel}>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">Texture</span>
+                  <span class="desktop-option-meta">Swap the table finish and felt treatment</span>
+                </span>
+              </button>
+              <button class="btn-tab btn-options-item" class:active={$showRules} on:click={toggleRulesPanel}>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">Rules</span>
+                  <span class="desktop-option-meta">Open the full-screen game guide</span>
+                </span>
+              </button>
+              <button class="btn-tab btn-options-item btn-mute" class:muted={soundMuted} on:click={onToggleMute}>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">{soundMuted ? 'Unmute' : 'Sound'}</span>
+                  <span class="desktop-option-meta">Table audio, chip clicks, and reveal cues</span>
+                </span>
+              </button>
+              <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>
+                <span class="desktop-option-copy">
+                  <span class="desktop-option-title">About</span>
+                  <span class="desktop-option-meta">The ChadJack philosophy and feature stack</span>
+                </span>
+              </button>
             </div>
 
             {#if showFeltPanel}
               <div class="panel felt-panel felt-panel-inline desktop-options-panel" on:click={stopEvent}>
-                <div class="panel-title">Texture</div>
+                <div class="desktop-panel-kicker">Surface Finish</div>
+                <div class="panel-title">Texture Library</div>
                 <div class="texture-picker">
                   {#each TEXTURE_ROWS as row}
                     <div class="texture-row texture-row-{row.textureKey}">
@@ -611,6 +656,7 @@
                 </div>
               </div>
             {/if}
+            </div>
 
             {#if showAbout}
               <div class="panel about-panel about-panel-inline desktop-options-panel" on:click={stopEvent}>
@@ -706,6 +752,36 @@
                   </table>
                 </div>
 
+                <div class="rules-section"><strong>Perfect Pairs</strong>
+                  <div class="rules-text rules-text-sm">{isSocial
+                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
+                    : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
+                  }</div>
+                  <table class="payout-table">
+                    <tbody>
+                      <tr><td>Perfect Pair (25:1)</td><td class="rules-example">Same rank, same suit. Example: two 7s of Hearts.</td></tr>
+                      <tr><td>Coloured Pair (12:1)</td><td class="rules-example">Same rank, same color, different suit. Example: 7 of Hearts and 7 of Diamonds.</td></tr>
+                      <tr><td>Mixed Pair (6:1)</td><td class="rules-example">Same rank, different color. Example: 7 of Hearts and 7 of Spades.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="rules-section"><strong>21+3</strong>
+                  <div class="rules-text rules-text-sm">{isSocial
+                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
+                    : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
+                  }</div>
+                  <table class="payout-table">
+                    <tbody>
+                      <tr><td>Suited Trips (100:1)</td><td class="rules-example">All three cards same rank and same suit. Example: three 8s of Clubs.</td></tr>
+                      <tr><td>Straight Flush (40:1)</td><td class="rules-example">Three consecutive ranks, all the same suit. Example: 4, 5, 6 of Hearts.</td></tr>
+                      <tr><td>Three of a Kind (30:1)</td><td class="rules-example">All three cards same rank, any suits. Example: three Kings.</td></tr>
+                      <tr><td>Straight (10:1)</td><td class="rules-example">Three consecutive ranks, any suits. Ace counts high or low.</td></tr>
+                      <tr><td>Flush (5:1)</td><td class="rules-example">All three cards same suit, any ranks. Example: any three Diamonds.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
                 <div class="rules-section"><strong>Game Rules</strong>
                   <div class="rules-text">
                     6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
@@ -713,7 +789,8 @@
                     Double down available on hard 9, 10, or 11 only.<br/>
                     One card only after doubling. No further hits.<br/>
                     Split available when first two cards share the same rank.<br/>
-                    No re-splitting. No double after split.<br/>
+                    No re-splitting. Max 6 total hands: 3 open → split 3×, 4 → 2×, 5 → 1×, 6 → no split.<br/>
+                    No double after split.<br/>
                     Split Aces receive one card only and stand automatically.<br/>
                     Maximum starting hands: 4 on desktop, 2 on mobile.
                   </div>
@@ -850,6 +927,191 @@
       </div>
     {/if}
 
+    {#if desktopInfoOverlayOpen}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="desktop-info-overlay-backdrop" on:click={closeInfoOverlay}>
+        <div class="desktop-info-overlay" on:click={stopEvent}>
+          <div class="desktop-info-topbar">
+            <div class="desktop-info-headline">
+              <div class="desktop-panel-kicker">{showFeltPanel ? 'Surface Finish' : showAbout ? 'ChadJack' : 'Game Guide'}</div>
+              <div class="desktop-info-title">{showFeltPanel ? 'Texture Library' : showAbout ? 'About ChadJack' : 'How To Play'}</div>
+            </div>
+            <button class="desktop-info-close" on:click={closeInfoOverlay}>Close</button>
+          </div>
+
+          {#if showFeltPanel}
+            <div class="desktop-info-body">
+              <section class="desktop-info-card">
+                <div class="desktop-info-section-title">Table Textures</div>
+                <div class="texture-picker">
+                  {#each TEXTURE_ROWS as row}
+                    <div class="texture-row texture-row-{row.textureKey}">
+                      <div class="texture-row-label">{row.textureLabel}</div>
+                      {#each row.options as option}
+                        <button
+                          class={`btn-theme texture-option theme-${option.key}`}
+                          class:active={feltTheme === option.key}
+                          on:click={() => applyFeltTheme(option.key)}
+                          aria-label={option.key}
+                        >
+                          <span class="texture-option-swatch" aria-hidden="true"></span>
+                        </button>
+                      {/each}
+                    </div>
+                  {/each}
+                </div>
+              </section>
+            </div>
+          {/if}
+
+          {#if showAbout}
+            <div class="desktop-info-body desktop-about-layout">
+              <section class="desktop-info-card desktop-about-hero">
+                <div class="desktop-about-logo">CHADJACK</div>
+                <p class="desktop-about-lead">Built for players who wanted Stake Originals Blackjack with more pressure, more side action, and more session control at the table.</p>
+              </section>
+              <section class="desktop-info-card">
+                <div class="desktop-info-section-title">What It Adds</div>
+                <p class="about-text">ChadJack layers optional sidebets, multi-hand play, and three autoplay styles onto a fast blackjack table without dragging the game into a bloated casino lobby experience.</p>
+              </section>
+              <section class="desktop-info-card">
+                <div class="desktop-info-section-title">Why It Exists</div>
+                <p class="about-text">We wanted a sharper desktop build: more hands, cleaner control over repeat action, and a ruleset that stays readable while the table still feels premium and immediate.</p>
+              </section>
+              <section class="desktop-info-card">
+                <div class="desktop-info-section-title">Table Personality</div>
+                <p class="about-text">The build keeps the ChadJack identity aggressive but controlled: gold highlights, dark utility chrome, and session tools that stay visible without flattening the felt atmosphere.</p>
+              </section>
+            </div>
+          {/if}
+
+          {#if $showRules}
+            <div class="desktop-info-body desktop-rules-layout">
+              <section class="desktop-info-card desktop-rules-summary">
+                <div class="desktop-info-section-title">Quick Read</div>
+                <div class="desktop-rules-grid">
+                  <div class="desktop-rule-stat"><span>Blackjack</span><strong>7 to 5</strong></div>
+                  <div class="desktop-rule-stat"><span>Insurance</span><strong>2 to 1</strong></div>
+                  <div class="desktop-rule-stat"><span>Decks</span><strong>6 Deck Shoe</strong></div>
+                  <div class="desktop-rule-stat"><span>Autoplay</span><strong>3 Modes</strong></div>
+                </div>
+              </section>
+
+              <section class="desktop-info-card">
+                <div class="rules-section"><strong>The Goal</strong>
+                  <div class="rules-text">Get a hand closer to 21 than the dealer without going over. If you go over 21, you bust and lose automatically, even if the dealer busts too.</div>
+                </div>
+
+                <div class="rules-section"><strong>Card Values</strong>
+                  <div class="rules-text">Number cards are worth their face value. Jack, Queen, and King are worth 10. Aces are worth either 1 or 11, whichever helps your hand more.</div>
+                </div>
+
+                <div class="rules-section"><strong>How a Round Works</strong>
+                  <div class="rules-text">{isSocial
+                    ? "You choose your play amount, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
+                    : "You place your bet, then both you and the dealer are dealt two cards. One of the dealer's cards is face up, one is face down. Based on your cards and the dealer's visible card, you decide what to do next."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Your Options</strong>
+                  <div class="rules-text">
+                    <strong>Hit</strong> - Take another card. You can keep hitting as many times as you want, as long as you don't bust.<br/><br/>
+                    <strong>Stand</strong> - Keep your current hand and end your turn.<br/><br/>
+                    <strong>Double Down</strong> - Double your original {isSocial ? 'play amount' : 'bet'} and receive exactly one more card, then you're done. No more hits after doubling. This is a power move when your hand is in a strong spot, like starting with a 10 or 11, because you're getting twice the {isSocial ? 'amount in play' : 'money down'} when the odds favor you.<br/><br/>
+                    <strong>Split</strong> - If your first two cards are the same rank (e.g. two 8s, or two Kings), you can split them into two separate hands. Each hand gets a new card drawn, your {isSocial ? 'play amount' : 'bet'} is duplicated, and you play them out independently. Split Aces receive only one card each and cannot be hit again.
+                  </div>
+                </div>
+              </section>
+
+              <section class="desktop-info-card">
+                <div class="rules-section"><strong>Blackjack</strong>
+                  <div class="rules-text">{isSocial
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5."
+                    : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 7:5, meaning a $10 bet wins $14."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Insurance</strong>
+                  <div class="rules-text">{isSocial
+                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                    : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Payouts</strong>
+                  <div class="rules-text">
+                    Blackjack pays 7:5<br/>
+                    Winning hand pays 1:1<br/>
+                    Insurance pays 2:1
+                  </div>
+                </div>
+
+                <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
+                  <div class="rules-text">{isSocial
+                    ? "Side plays are optional extra plays placed before the deal. They're independent from your main hand — you can win a side play and lose your main hand, or vice versa. Side plays are higher risk, higher reward, and have a lower RTP than the base game."
+                    : "Side bets are optional extra bets placed before the deal. They're independent from your main hand, you can win a side bet and lose your main hand, or vice versa. Side bets are higher risk, higher reward, and have a lower RTP than the base game."
+                  }</div>
+                </div>
+
+                <div class="rules-section"><strong>Game Rules</strong>
+                  <div class="rules-text">
+                    6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
+                    Dealer hits soft 17 and stands on hard 17.<br/>
+                    Double down available on hard 9, 10, or 11 only.<br/>
+                    One card only after doubling. No further hits.<br/>
+                    Split available when first two cards share the same rank.<br/>
+                    Maximum of 6 hands on the table.<br/>
+                    Split limits depend on active hands: 3 hands on table -> split 3 more, 4 hands -> split 2 more, 5 hands -> split 1 more, 6 hands -> no more splits.<br/>
+                    No double after split.<br/>
+                    Split Aces receive one card only and stand automatically.<br/>
+                    Maximum starting hands: 6 on desktop, 2 on mobile.
+                  </div>
+                </div>
+
+                <div class="rules-section"><strong>Autoplay Modes</strong>
+                  <div class="rules-text">
+                    <strong>Conservative</strong> - Lower-variance play. Avoids marginal doubles, stands earlier in riskier spots. Designed to preserve your bankroll over longer sessions.<br/><br/>
+                    <strong>Optimal</strong> - Perfect basic strategy for this build. The mathematically strongest mode and the closest thing to ideal play.<br/><br/>
+                    <strong>High Roller</strong> - Aggressive action. Leans into doubles and pressure spots for higher volatility, bigger swings, and faster exposure.
+                  </div>
+                  <table class="payout-table strategy-table">
+                    <thead>
+                      <tr><th></th><th>Conservative</th><th>Optimal</th><th>High Roller</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Hard 9 double</td><td>Never</td><td>vs 3-6 only</td><td>vs any</td></tr>
+                      <tr><td>Hard 10 double</td><td>vs 2-9</td><td>vs 2-9</td><td>vs any</td></tr>
+                      <tr><td>Hard 11 double</td><td>vs 2-9</td><td>vs any incl. A</td><td>vs any</td></tr>
+                      <tr><td>Soft doubles</td><td>Never</td><td>Full chart</td><td>More aggressive</td></tr>
+                      <tr><td>Surrender</td><td>Never</td><td>Yes</td><td>Never</td></tr>
+                      <tr><td>Splits</td><td>Aces + 8s only</td><td>Full chart</td><td>Full chart +</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {#if showRtp}
+                  <div class="rules-section"><strong>RTP (Return to Player)</strong>
+                    <div class="rules-text rtp">{#if isSocial}
+                      Blackjack - 97.9%*<br/>
+                      Perfect Pairs - 86.4952%<br/>
+                      21+3 - 85.7029%<br/><br/>
+                      *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
+                    {:else}
+                      Blackjack - 97.9%*<br/>
+                      Perfect Pairs - 86.4952%<br/>
+                      21+3 - 85.7029%<br/><br/>
+                      *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
+                    {/if}</div>
+                  </div>
+                {/if}
+              </section>
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
     <div class="table-playfield">
       <div class="playfield-top">
         <!-- DEALER AREA -->
@@ -945,6 +1207,7 @@
               class="cards-col"
               class:mid-cards-col={useSecondRowCardSize}
               class:compact-cards-col={isDesktop && $numSlots > 6}
+              class:has-sb={($sideBetsEnabled && (isBet || isResult)) || hand.sb.pp > 0 || hand.sb.t > 0}
             >
               <!-- Hand value bubble -->
               {#if hand.cards.length > 0}
@@ -1141,7 +1404,14 @@
 
       <!-- Auto panel -->
       {#if $showAuto && showDesktopAutoplay}
-        <div class="panel" on:click={stopEvent}>
+        <div class="panel desktop-auto-panel" on:click={stopEvent}>
+          <div class="desktop-auto-head">
+            <div>
+              <div class="desktop-panel-kicker">Autoplay Suite</div>
+              <div class="panel-title">Autobet Control</div>
+            </div>
+            <div class="desktop-auto-mode-badge">{AUTO_MODES.find((mode) => mode.key === $autoMode)?.label}</div>
+          </div>
           <div class="panel-label">Mode</div>
           <div class="mode-row">
             {#each AUTO_MODES as mode}
@@ -1157,7 +1427,7 @@
               <button class="btn-speed" class:active={$autoSpeed === k} on:click={() => autoSpeed.set(k)}>{sp.label}</button>
             {/each}
           </div>
-          <div class="panel-hint">Insurance is always auto-declined. Current {isSocial ? 'plays and side plays' : 'bets and side bets'} stay in place between rounds.</div>
+          <div class="panel-hint desktop-auto-copy">Insurance is always auto-declined. Current {isSocial ? 'plays and side plays' : 'bets and side bets'} stay in place between rounds.</div>
           <div class="rounds-row">
             <span class="panel-label">Max Rounds</span>
             <div class="rounds-ctrl">
@@ -1282,6 +1552,7 @@
     color: #f2e8d0;
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    zoom: 0.97;
   }
   :global(button) {
     font-family: 'Inter', sans-serif;
@@ -1404,19 +1675,23 @@
     letter-spacing: 0.05em;
   }
   .btn-options-toggle {
-    min-height: 34px !important;
-    padding: 6px 14px !important;
+    min-height: 40px !important;
+    padding: 7px 18px !important;
     border-radius: 999px !important;
-    border: 1px solid rgba(203, 218, 206, 0.36) !important;
-    background: rgba(10, 30, 19, 0.86) !important;
-    color: rgba(212, 223, 213, 0.86) !important;
-    font-size: 13px !important;
+    border: 1px solid rgba(232, 212, 139, 0.28) !important;
+    background:
+      linear-gradient(180deg, rgba(15, 34, 24, 0.94) 0%, rgba(8, 20, 14, 0.96) 100%) !important;
+    color: #f4ead0 !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
-    box-shadow: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 14px 30px rgba(0,0,0,0.28) !important;
   }
   .btn-options-toggle.active {
-    border-color: rgba(212, 168, 64, 0.7) !important;
-    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%) !important;
+    border-color: rgba(232, 212, 139, 0.68) !important;
+    background:
+      linear-gradient(180deg, rgba(70, 50, 18, 0.92) 0%, rgba(28, 20, 8, 0.96) 100%) !important;
     color: #fff4cf !important;
   }
   .mobile-balance-pill {
@@ -1445,78 +1720,140 @@
   }
   .desktop-options-drawer {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 12px);
     right: 0;
     left: auto;
-    width: min(180px, calc(100vw - 24px));
+    width: min(420px, calc(100vw - 24px));
     z-index: 40;
-    padding: 4px 0 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
   }
   .desktop-options-drawer.full-panel-open {
-    width: min(480px, calc(100vw - 24px));
+    width: min(620px, calc(100vw - 24px));
+  }
+  .desktop-options-shell {
+    border-radius: 26px;
+    border: 1px solid rgba(232, 212, 139, 0.18);
+    background:
+      linear-gradient(180deg, rgba(17, 31, 23, 0.97) 0%, rgba(8, 16, 13, 0.985) 100%);
+    box-shadow:
+      0 28px 70px rgba(0,0,0,0.42),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 0 0 1px rgba(255,255,255,0.02);
+    backdrop-filter: blur(18px);
+    padding: 18px;
+  }
+  .desktop-options-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .desktop-options-title {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 34px;
+    letter-spacing: 0.06em;
+    color: #f6edd6;
+    line-height: 0.95;
+  }
+  .desktop-options-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.2);
+    background: rgba(232, 212, 139, 0.08);
+    color: #e8d48b;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
   .mobile-options-column {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 10px;
+  }
+  .desktop-options-grid {
+    gap: 10px;
   }
   .btn-options-item {
-    min-height: 30px !important;
-    padding: 6px 8px !important;
-    border-radius: 999px !important;
-    border: 1px solid rgba(232, 212, 139, 0.2) !important;
-    background: rgba(255, 255, 255, 0.02) !important;
+    min-height: 72px !important;
+    padding: 14px 16px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(232, 212, 139, 0.14) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.015) 100%) !important;
     color: #ffffff !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.045),
+      0 12px 26px rgba(0,0,0,0.18);
+    justify-content: space-between !important;
+    text-align: left !important;
   }
   .btn-options-item.active {
-    border-color: rgba(212, 168, 64, 0.7) !important;
-    background: linear-gradient(180deg, rgba(212, 168, 64, 0.24) 0%, rgba(112, 79, 19, 0.22) 100%) !important;
+    border-color: rgba(232, 212, 139, 0.45) !important;
+    background:
+      linear-gradient(180deg, rgba(70, 52, 18, 0.88) 0%, rgba(27, 21, 10, 0.96) 100%) !important;
     color: #fff4cf !important;
     box-shadow:
-      inset 0 1px 0 rgba(255, 235, 173, 0.18),
-      0 0 0 1px rgba(212, 168, 64, 0.08);
+      inset 0 1px 0 rgba(255, 235, 173, 0.2),
+      0 18px 34px rgba(0,0,0,0.24);
   }
   .btn-options-toggle-pill {
-    display: inline-flex !important;
+    display: flex !important;
     align-items: center;
-    justify-content: center;
-    position: relative;
-    gap: 0;
-    text-align: center;
+    justify-content: space-between;
+    gap: 14px;
   }
-  .btn-options-toggle-label {
-    display: block;
-    width: 100%;
-    text-align: center;
+  .desktop-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .desktop-option-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .desktop-option-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    color: rgba(242, 232, 208, 0.68);
   }
   .options-mini-toggle {
-    width: 12px;
-    height: 12px;
+    min-width: 58px;
+    height: 34px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 2px;
-    background: #050505;
-    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    background: rgba(4, 10, 8, 0.94);
+    border: 1px solid rgba(255,255,255,0.14);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     color: #ffffff;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     line-height: 1;
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .desktop-options-panel {
-    margin-top: 2px;
-    max-height: min(58vh, 520px);
+    margin-top: 16px;
+    max-height: none;
     overflow-y: auto;
   }
   .felt-panel-inline,
@@ -2368,8 +2705,10 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    margin-left: 44px; /* center under cards-row, offsetting sb-col width */
   }
+  /* When sb-col is visible, shift the sb-and-cards block left by (72px + 4px gap) / 2 = 38px
+     so the cards-row lands at cards-col center — directly under the hv-bubble and bet-bar */
+  .cards-col.has-sb .sb-and-cards { margin-left: -38px; }
   .bet-bar.active-hand-bet {
     border-radius: 16px;
     box-shadow:
@@ -2726,6 +3065,26 @@
     font-size: 25px;
   }
 
+  /* Result phase: pin Next Hand + result pill to the bottom of the viewport.
+     No background — let the felt show through. The pill has its own opaque bg. */
+  .table-wrap.phase-result .center-deal-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 8px 0 max(16px, env(safe-area-inset-bottom));
+    background: transparent;
+    align-items: center;
+  }
+  /* Give the result pill a solid-enough background so it's readable over any wager pill */
+  .table-wrap.phase-result .result-pill {
+    background: rgba(0,0,0,0.75);
+    border-color: rgba(255,255,255,0.22);
+  }
+  .table-wrap.phase-result .result-pill.win  { background: rgba(30,110,68,0.92); border-color: rgba(45,184,112,0.6); }
+  .table-wrap.phase-result .result-pill.lose { background: rgba(110,30,30,0.88); border-color: rgba(239,83,80,0.55); }
+
   .action-area-fixed { display: flex; flex-direction: column; justify-content: flex-end; margin-top: 4px; }
   .action-area-spacer { flex: 1; }
   .action-wager-label {
@@ -2885,41 +3244,115 @@
 
   /* PANELS */
   .panel {
-    background: #172e20; border-radius: 6px; padding: 8px 10px; margin-top: 8px;
+    background:
+      linear-gradient(180deg, rgba(18, 35, 26, 0.96) 0%, rgba(8, 16, 13, 0.985) 100%);
+    border: 1px solid rgba(232, 212, 139, 0.18);
+    border-radius: 24px;
+    padding: 18px 20px;
+    margin-top: 10px;
+    box-shadow:
+      0 26px 60px rgba(0,0,0,0.34),
+      inset 0 1px 0 rgba(255,255,255,0.05);
     animation: fadeIn 0.15s ease;
   }
-  .panel-label { font-size: 21px; margin-bottom: 3px; opacity: 0.6; }
-  .panel-hint  { font-size: 17px; opacity: 0.5; margin-bottom: 6px; line-height: 1.4; }
+  .desktop-panel-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #d6b062;
+    opacity: 0.95;
+  }
+  .panel-label { font-size: 14px; margin-bottom: 8px; opacity: 0.72; letter-spacing: 0.12em; text-transform: uppercase; }
+  .panel-hint  { font-size: 15px; opacity: 0.64; margin-bottom: 10px; line-height: 1.55; }
   .mode-row,
-  .speed-row   { display: flex; gap: 3px; margin-bottom: 6px; flex-wrap: wrap; }
+  .speed-row   { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .btn-mode,
-  .btn-speed   { flex: 1; padding: 5px 8px; font-size: 20px; border-radius: 4px; border: 1px solid #2a5a3a; background: transparent; color: #bfb49a; min-width: 88px; }
+  .btn-speed   {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(232, 212, 139, 0.14);
+    background: rgba(255,255,255,0.025);
+    color: #d7cfbb;
+    min-width: 110px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
   .btn-mode.active,
-  .btn-speed.active { border-color: #e8d48b; background: rgba(232,212,139,0.12); color: #e8d48b; }
-  .mode-hint { min-height: 34px; }
+  .btn-speed.active {
+    border-color: #e8d48b;
+    background: linear-gradient(180deg, rgba(84, 63, 24, 0.84), rgba(29, 22, 10, 0.94));
+    color: #fff0c1;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .mode-hint { min-height: 46px; }
 
-  .rounds-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .rounds-ctrl { display: flex; align-items: center; gap: 3px; }
+  .desktop-auto-panel {
+    width: min(820px, calc(100% - 24px));
+    margin: 0 auto 12px;
+  }
+  .desktop-auto-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .desktop-auto-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.18);
+    background: rgba(232, 212, 139, 0.08);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f2deab;
+  }
+  .desktop-auto-copy {
+    max-width: 72ch;
+  }
+  .rounds-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .rounds-ctrl { display: flex; align-items: center; gap: 6px; }
   .rounds-ctrl button {
-    width: 22px; height: 22px; border-radius: 4px;
-    border: 1px solid #2a5a3a; background: #071a0e; color: #bfb49a;
-    font-size: 16px; font-weight: 700;
+    width: 34px; height: 34px; border-radius: 10px;
+    border: 1px solid rgba(232, 212, 139, 0.16);
+    background: rgba(6, 12, 10, 0.96);
+    color: #e7d8b0;
+    font-size: 20px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
   }
-  .rounds-ctrl span { font-size: 22px; width: 36px; text-align: center; font-weight: 700; }
+  .rounds-ctrl span { font-size: 28px; width: 64px; text-align: center; font-weight: 700; font-family: 'Oswald', sans-serif; color: #fff0c1; }
   .btn-auto-toggle {
-    width: 100%; padding: 8px 0; border-radius: 5px; border: none;
-    font-size: 21px; font-weight: 700; background: #4caf50; color: #fff;
+    width: 100%;
+    padding: 14px 0;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(180deg, #47b85a, #237139);
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .btn-auto-toggle.stop { background: #ef5350; }
+  .btn-auto-toggle.stop { background: linear-gradient(180deg, #d84a41, #8d201d); }
 
   /* ABOUT */
   .about-panel { max-height: min(34vh, 320px); overflow-y: auto; }
   .about-text {
     font-size: 16px;
     line-height: 1.75;
-    color: rgba(242, 232, 208, 0.72);
-    font-style: italic;
+    color: #ffffff;
+    font-style: normal;
     font-family: 'Inter', sans-serif;
   }
 
@@ -3061,6 +3494,136 @@
   .strategy-table td:first-child { text-align: left; opacity: 0.7; font-weight: 500; }
   .strategy-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
 
+  .desktop-info-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(212,168,64,0.16), transparent 34%),
+      linear-gradient(180deg, rgba(2, 8, 6, 0.48) 0%, rgba(3, 8, 6, 0.82) 100%);
+    backdrop-filter: blur(12px);
+    padding: 26px;
+  }
+  .desktop-info-overlay {
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    border: 1px solid rgba(232, 212, 139, 0.18);
+    background:
+      linear-gradient(180deg, rgba(14, 29, 22, 0.97) 0%, rgba(8, 16, 13, 0.985) 100%);
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.46),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .desktop-info-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 28px 30px 18px;
+    border-bottom: 1px solid rgba(232, 212, 139, 0.12);
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0));
+  }
+  .desktop-info-title {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 46px;
+    letter-spacing: 0.05em;
+    color: #f7eed6;
+    line-height: 0.95;
+  }
+  .desktop-info-close {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(232, 212, 139, 0.2);
+    background: rgba(255,255,255,0.03);
+    color: #f3e6c2;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .desktop-info-body {
+    flex: 1;
+    overflow: auto;
+    padding: 24px 30px 30px;
+  }
+  .desktop-about-layout,
+  .desktop-rules-layout {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+  }
+  .desktop-about-hero,
+  .desktop-rules-summary {
+    grid-column: 1 / -1;
+  }
+  .desktop-info-card {
+    border-radius: 24px;
+    border: 1px solid rgba(232, 212, 139, 0.12);
+    background: rgba(255,255,255,0.025);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 22px 24px;
+  }
+  .desktop-info-section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #efd58d;
+    margin-bottom: 12px;
+  }
+  .desktop-about-logo {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: clamp(58px, 7vw, 108px);
+    line-height: 0.9;
+    letter-spacing: 0.06em;
+    color: #f7ead0;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 24px rgba(212,168,64,0.12);
+    margin-bottom: 14px;
+  }
+  .desktop-about-lead {
+    max-width: 48rem;
+    font-size: 20px;
+    line-height: 1.6;
+    color: rgba(242,232,208,0.82);
+  }
+  .desktop-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .desktop-rule-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(4, 10, 8, 0.42);
+    border: 1px solid rgba(232, 212, 139, 0.1);
+  }
+  .desktop-rule-stat span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(242,232,208,0.6);
+  }
+  .desktop-rule-stat strong {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 30px;
+    letter-spacing: 0.04em;
+    color: #f7e5af;
+    font-weight: 400;
+  }
+
   .btn-reload {
     width: 100%; padding: 8px 0; border-radius: 5px;
     border: 1px solid #2a5a3a; background: transparent;
@@ -3150,8 +3713,14 @@
       gap: 0;
     }
     .hands-row.count-one { grid-template-columns: max-content; }
+    /* Nudge cards+sidebets left 36px in 1-hand layout */
+    .hands-row.count-one .sb-and-cards                     { margin-left: -36px; }
+    .hands-row.count-one .cards-col.has-sb .sb-and-cards   { margin-left: -74px; } /* -38 - 36 */
     .hands-row.count-two { grid-template-columns: repeat(2, max-content); column-gap: 125px; margin-top: -10px; }
     .hands-row.count-three { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
+    /* Nudge cards+sidebets left 36px in 3-hand layout */
+    .hands-row.count-three .sb-and-cards                        { margin-left: -36px; }
+    .hands-row.count-three .cards-col.has-sb .sb-and-cards      { margin-left: -74px; } /* -38 - 36 */
     .hands-row.count-fourplus { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
     .hands-row.three-up {
       padding-top: 25px;

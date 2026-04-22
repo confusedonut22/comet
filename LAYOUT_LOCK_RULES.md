@@ -1,49 +1,41 @@
-# Layout Lock Rules
+## ChadJack Layout Lock Rules
 
-Repository: `/Users/gerryturnbow/Downloads/comet`
-Baseline commit: `d04516b`
-Final build freeze declared: `2026-04-19`
+Effective date: 2026-04-22
+Repo: `/Users/gerryturnbow/Downloads/comet`
 
-This file replaces all prior conversational layout rules.
+### Active Lock
 
-## Canonical Rule
+Desktop is frozen exactly as it exists now.
 
-The current approved layout is locked exactly as-is.
+Do not make any desktop layout, styling, geometry, spacing, positioning, scale, card-lane, sidebet-lane, footer, header, options, balance, dealer-area, player-area, or action-bar changes unless the user explicitly unlocks desktop in a future request.
 
-No pixel movement is allowed anywhere in the game unless the user explicitly unlocks a specific element or region.
+### Frozen Desktop Areas
 
-## Locked By Default
+- screen 1 desktop
+- screen 2 desktop
+- screen 3 desktop
+- single-hand desktop layout
+- multi-hand desktop layout
+- dealer geometry
+- player card geometry
+- count bubble geometry
+- wager bar / wager label geometry
+- sidebet geometry
+- autoplay / deal / next-hand footer layout
+- options / balance placement
+- felt / divider / background layout
+- lower action area layout
 
-- All screen 1 layout
-- All screen 2 layout
-- All screen 3 layout
-- Single-hand layout
-- Multi-hand layout
-- Dealer layout
-- Player card layout
-- Count bubble layout
-- Wager bubble / wager bar layout
-- Sidebet layout
-- Options / balance layout
-- Divider / felt / texture layout
-- Bottom action layout
+### Allowed Without Unlock
 
-## Operational Rule
+- mobile-only work
+- non-layout desktop bugfixes that do not alter visuals or geometry
+- content, copy, or config changes that do not change desktop presentation
 
-For future tasks, assume:
+### Required Future Behavior
 
-1. The current committed layout is the only approved geometry.
-2. Historical instructions, experimental nudges, and prior ad hoc rules are void.
-3. No layout-related request may be interpreted as permission to move any element except the exact element the user explicitly unlocks.
-4. If a requested implementation would move any locked geometry as a side effect, that implementation is invalid.
-5. Functional fixes must preserve current pixel geometry unless the user explicitly authorizes a visual change.
-6. Non-geometry styling updates are allowed only when they do not alter position, size, spacing, alignment, or containment.
+If a future request touches desktop in any way:
 
-## Unlock Protocol
-
-Layout may change only if the user explicitly states both:
-
-- what element is unlocked
-- what movement or geometry change is allowed
-
-Anything not explicitly unlocked remains frozen.
+1. Restate that desktop is frozen.
+2. Identify the exact desktop element the user is unlocking.
+3. Do not move any other desktop element without an explicit unlock.
