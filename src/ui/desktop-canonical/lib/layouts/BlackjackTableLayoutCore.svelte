@@ -543,6 +543,7 @@
   class:phase-bet={isBet}
   class:phase-play={isPlay || isIns || isDealer}
   class:phase-result={isResult}
+  class:phase-auto={$autoPlay}
   class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
   class:felt-theme-velvet-green={feltTheme === "velvet-green"}
   class:felt-theme-velvet-black={feltTheme === "velvet-black"}
@@ -3325,6 +3326,9 @@
       box-shadow: inset 0 14px 18px rgba(0, 0, 0, 0.16);
     }
     .table-wrap.stacked-layout.phase-play .center-deal-wrap {
+      display: none;
+    }
+    .table-wrap.phase-auto .center-deal-wrap {
       display: none;
     }
     .table-wrap.stacked-layout.phase-play .action-grid {
