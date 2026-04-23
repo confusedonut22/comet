@@ -1246,10 +1246,13 @@
         {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
         <div class="action-wager-label" class:multi-play-wager={isPlay && $numSlots > 1}>{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
       {/if}
-      <!-- Action area: stop bar replaces grid during autoplay, both same fixed height -->
+      <!-- Action area: stop bar during autoplay, hit grid during normal play -->
       <div class="action-area-fixed">
         {#if $autoPlay && !isReplay && !autoplayDisabled}
-          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>STOP AUTOPLAY</button>
+          <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
+            <span class="stop-bar-label">STOP AUTOPLAY</span>
+            <span class="stop-bar-count">{$autoCount}/{$autoMax}</span>
+          </button>
         {:else if isPlay && activeH && !isReplay}
           <div class="action-grid">
             <button class="btn-action" on:click={hit}>Hit</button>
@@ -1265,8 +1268,8 @@
         </div>
       {/if}
 
-      <!-- Deal button -->
-      {#if (isBet || isResult) && !isReplay}
+      <!-- Deal button — hidden during autoplay so it doesn't cause layout shift -->
+      {#if (isBet || isResult) && !isReplay && !$autoPlay}
         <div class="center-deal-wrap">
           <button
             class="btn-deal"
@@ -2631,7 +2634,7 @@
     min-height: 86px;
     padding: 0;
     background: #c62828;
-    color: #000;
+    color: #fff;
     font-family: 'Oswald', sans-serif;
     font-size: 28px;
     font-weight: 700;
@@ -2643,7 +2646,22 @@
     margin-bottom: 5px;
     transition: background 0.15s;
   }
+  .btn-stop-bar-fixed {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 0;
+    margin-bottom: 0;
+    min-height: 72px;
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    z-index: 60;
+  }
   .btn-stop-bar:hover { background: #e53935; }
+  .btn-stop-bar { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .stop-bar-label { font-size: 28px; font-weight: 700; letter-spacing: 0.08em; }
+  .stop-bar-count  { font-size: 22px; font-weight: 600; opacity: 0.85; letter-spacing: 0.04em; }
   /* Fact bar — pinned bottom strip, no border */
   .fact-below-actions {
     width: 100%;
@@ -4651,7 +4669,10 @@
     transform: translateY(-39px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateY(-39px) !important;
+    transform: translateY(-33px) !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .ghost {
+    transform: translateY(30px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
     width: max-content !important;
