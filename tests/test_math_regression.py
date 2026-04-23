@@ -11,13 +11,13 @@ from engine import (
 )
 
 class MathRegressionTests(unittest.TestCase):
-    def test_blackjack_pays_7_to_5(self):
+    def test_blackjack_pays_3_to_2(self):
         hand = HandState(cards=[Card("A", "hearts"), Card("K", "spades")], bet=1_000_000)
         dealer = [Card("7", "clubs"), Card("9", "diamonds")]
         from engine import resolve_hand_state
         result, payout = resolve_hand_state(hand, dealer)
         self.assertEqual(result, HandResult.BLACKJACK)
-        self.assertEqual(payout, 2_400_000)  # 1M bet + 1.4M = 2.4M (7:5 payout)
+        self.assertEqual(payout, 2_500_000)  # 1M bet + 1.5M = 2.5M (3:2 payout)
 
     def test_dealer_blackjack_beats_player_20(self):
         hand = HandState(cards=[Card("K", "hearts"), Card("Q", "spades")], bet=1_000_000)
@@ -66,7 +66,7 @@ class MathRegressionTests(unittest.TestCase):
         is below the Stake Engine 98.0% ceiling.
         Stand-only strategy RTP is ~96-97% (well below ceiling), so this catches
         gross engine bugs (payout errors, wager tracking failures, etc.).
-        For final published RTP (~97.9%), see math/simulate.py full run.
+        For the final published RTP estimate, see math/simulate.py full run.
         """
         rng = random.Random(42)
         shoe = Shoe(rng=rng)
@@ -80,7 +80,7 @@ class MathRegressionTests(unittest.TestCase):
             total_returned += state.total_returned
         rtp = total_returned / total_wagered if total_wagered else 0
         # Stand-only RTP must be above 80% (engine not broken) and below 98% ceiling
-        # Note: stand-only with 7:5 BJ payout legitimately runs ~85-87%
+        # Note: stand-only with 3:2 BJ payout should still remain comfortably below 98%
         self.assertGreater(rtp, 0.80, "RTP implausibly low — engine payout bug?")
         self.assertLess(rtp, 0.98, f"RTP {rtp:.4f} exceeds Stake 98.0% ceiling")
 

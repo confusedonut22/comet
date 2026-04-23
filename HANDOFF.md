@@ -206,7 +206,7 @@ After authenticate, the app enters one of these states (`sessionBootstrapModel.j
 This is the primary deliverable. Single Svelte component, ~5100 lines.
 
 ### Game Features
-- Blackjack with configurable rules (1–8 decks, S17/H17, DAS, RSA, BJ pays 3:2 / 6:5 / 7:5)
+- Blackjack with the locked ChadJack ruleset (6 decks, H17, no DAS, no resplitting, BJ pays 3:2)
 - **Side bets: Perfect Pairs + 21+3** (enabled/configured via Stake config)
 - **Multi-hand play** (up to 4 simultaneous betting spots)
 - **Split hands** (including Ace splits, re-split where allowed)

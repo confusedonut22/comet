@@ -16,11 +16,11 @@ RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 RED_SUITS = {"diamonds", "hearts"}
 NUM_DECKS = 6
 RESHUFFLE_THRESHOLD = 52  # reshuffle when fewer than this many cards remain
-BJ_MULTIPLIER = 1.4  # 7:5 payout (keeps RTP ~97.9%, safely below Stake 98.0% ceiling)
+BJ_MULTIPLIER = 1.5  # 3:2 payout
 
 # ─── APPROVAL RULESET LOCK ───
 # Stake Engine approval: H17, no double after split, no resplitting
-# Blackjack pays 7:5 (1.4x) — primary RTP lever keeping base game ~97.9% below 98.0% ceiling
+# Blackjack pays 3:2 (1.5x) for the locked ChadJack submission ruleset
 ALLOW_DAS = False      # No double after split
 ALLOW_RESPLIT = False  # No resplitting allowed
 DOUBLE_ON_HARD = {9, 10, 11}  # Double allowed on hard 9, 10, 11

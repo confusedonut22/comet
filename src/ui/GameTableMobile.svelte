@@ -124,7 +124,7 @@
   $: introVideoSrc = isDesktop ? INTRO_VIDEO : INTRO_VIDEO_MOBILE;
   $: isWideDesktop = windowWidth >= 1280;
   $: {
-    maxHands.set(windowWidth >= 600 ? 4 : 2);
+    maxHands.set(2);
   }
 
   // ─── COMPUTED ───
@@ -185,7 +185,13 @@
     if (soft) return false;
     return total === 9 || total === 10 || total === 11;
   })();
-  $: canSplit  = activeH && !activeH.isSplit && activeH.cards.length === 2 && $balance >= activeH.bet && $hands.length < 4 && activeH.cards[0].rank === activeH.cards[1].rank;
+  $: canSplit  = activeH
+    && !activeH.isSplit
+    && !activeH.isAceSplit
+    && activeH.cards.length === 2
+    && $balance >= activeH.bet
+    && $hands.length < 6
+    && activeH.cards[0].rank === activeH.cards[1].rank;
   $: isBadBeat = isResult && $message;
   $: dealLabel = $autoPlay ? `Auto ${$autoCount}/${$autoMax}` : isDealer ? "Dealing..." : isIns ? "Insurance..." : isResult ? "Next Hand" : "Deal";
   $: tableControlMode = isDesktop && !isPlay ? 'table' : 'footer';
@@ -4630,7 +4636,7 @@
     width: max-content !important;
     max-width: none !important;
     justify-content: flex-start !important;
-    align-items: flex-start !important;
+    align-items: center !important;
     gap: 4px !important;
     margin: 0 auto !important;
     transform: none !important;
@@ -4645,7 +4651,7 @@
     transform: none !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateX(8px) !important;
+    transform: translateX(18px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
     transform: translateY(1px) !important;
@@ -4654,6 +4660,18 @@
   .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets,
   .table-wrap.phase-result .felt.single-hand .cards-col.has-sidebets {
     min-width: 104px !important;
+  }
+  .table-wrap.phase-play-single-hand .felt.single-hand .cards-col {
+    transform: translateY(50px) !important;
+  }
+  .table-wrap.phase-play-single-hand .felt.single-hand .cards-col.has-sidebets {
+    transform: translate(-26px, 50px) !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .cards-col {
+    transform: translateY(50px) !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets {
+    transform: translate(-26px, 50px) !important;
   }
   .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets .hv-bubble,
   .table-wrap.phase-play .felt.single-hand .cards-col.has-sidebets .hv-bubble,

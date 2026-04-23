@@ -213,21 +213,12 @@
       autoConfirmOpen = false;
       autoPlay.set(false);
     } else {
-      autoConfirmOpen = true;
+      autoConfirmOpen = false;
+      showAuto.set(false);
+      autoCount.set(0);
+      autoPlay.set(true);
+      if (isResult || isBet) autoTick();
     }
-  }
-
-  function confirmAutoStart() {
-    if (autoplayDisabled || $autoPlay) return;
-    autoConfirmOpen = false;
-    showAuto.set(false);
-    autoCount.set(0);
-    autoPlay.set(true);
-    if (isResult || isBet) autoTick();
-  }
-
-  function cancelAutoStart() {
-    autoConfirmOpen = false;
   }
 
   function resultColor(result) {
@@ -792,7 +783,7 @@
                     No re-splitting. Max 6 total hands: 3 open → split 3×, 4 → 2×, 5 → 1×, 6 → no split.<br/>
                     No double after split.<br/>
                     Split Aces receive one card only and stand automatically.<br/>
-                    Maximum starting hands: 4 on desktop, 2 on mobile.
+                    Maximum starting hands: 6 on desktop, 2 on mobile.
                   </div>
                 </div>
 
@@ -1436,17 +1427,9 @@
               <button on:click={() => autoMax.update(m => Math.min(1000, m + 10))}>+</button>
             </div>
           </div>
-          {#if autoConfirmOpen && !$autoPlay}
-            <div class="panel-hint auto-confirm-copy">Autoplay must be confirmed before consecutive rounds can begin.</div>
-            <div class="auto-confirm-row">
-              <button class="btn-auto-toggle" on:click={confirmAutoStart}>Confirm Auto</button>
-              <button class="btn-auto-cancel" on:click={cancelAutoStart}>Cancel</button>
-            </div>
-          {:else}
           <button class="btn-auto-toggle" class:stop={$autoPlay} on:click={toggleAuto}>
             {$autoPlay ? "Stop Auto" : "Start Auto"}
           </button>
-          {/if}
         </div>
       {/if}
 

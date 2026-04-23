@@ -1,4 +1,5 @@
 import { evaluate21Plus3, evaluatePerfectPairs, handValue, isBlackjack, resolveHand } from "./engine.js";
+import { BJ_MULTIPLIER } from "./rules.js";
 
 export function getInsuranceAmount(totalMainBet) {
   return Math.floor(totalMainBet / 2);
@@ -54,7 +55,7 @@ export function settleImmediateHands(hands, dealerCards) {
       } else if (pv === 21) {
         result = "blackjack";
         message = "Blackjack";
-        payout = hand.bet + Math.floor(hand.bet * 1.5);
+        payout = hand.bet + Math.floor(hand.bet * BJ_MULTIPLIER);
         done = true;
       } else if (dealerBJ) {
         result = "lose";

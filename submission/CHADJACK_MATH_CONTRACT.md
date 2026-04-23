@@ -28,7 +28,7 @@ These values are the frozen first-pass export assumptions.
 - game type: blackjack
 - decks: `6`
 - reshuffle threshold: `52 cards remaining`
-- blackjack payout: `7:5`
+- blackjack payout: `3:2`
 - dealer rule: `H17` (dealer hits soft 17)
 - split allowed: `yes, same-rank pair only`
 - resplit allowed: `no`

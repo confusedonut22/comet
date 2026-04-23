@@ -2,7 +2,7 @@
 Degen Blackjack — RTP Simulator
 Chad Labs / Stake Engine
 Runs rounds to approximate current implemented RTP:
-  - Base game: ~97.9% simulation-backed estimate with basic strategy + H17 + 7:5 BJ + double hard 9/10/11
+  - Base game: simulation-backed estimate with basic strategy + H17 + 3:2 BJ + double hard 9/10/11
   - Perfect Pairs: 86.4952% exact for current 6-deck profit-only rules
   - 21+3: 85.7029% exact for current 6-deck profit-only rules
 """
@@ -19,8 +19,8 @@ from engine import (
 
 def basic_strategy_action(player_cards, dealer_up_card):
     """
-    Basic strategy for simulation, aligned with locked ruleset.
-    Double restricted to hard totals in DOUBLE_ON_HARD (currently hard 11 only).
+    Basic strategy for simulation, aligned with the locked ruleset.
+    Double restricted to hard totals in DOUBLE_ON_HARD (currently hard 9/10/11).
     Returns: 'hit', 'stand', or 'double'
     """
     pv = hand_value(player_cards)
@@ -60,7 +60,7 @@ def basic_strategy_action(player_cards, dealer_up_card):
 def simulate_base_game(num_rounds=1_000_000, base_bet=MONEY_SCALE):
     """
     Simulate base game to calculate RTP.
-    Uses basic strategy with hard-11-only doubling (matching locked ruleset).
+    Uses basic strategy with hard-9/10/11 doubling (matching the locked ruleset).
     """
     shoe = Shoe()
     total_wagered = 0
@@ -177,7 +177,7 @@ def main():
     print(f"Running {num_rounds:,} rounds per test...")
     print(f"{'='*50}")
 
-    print(f"\n1. Base Game (target: ~97.9%, H17, double hard 11 only)")
+    print(f"\n1. Base Game (3:2 blackjack, H17, double hard 9/10/11)")
     rtp, wagered, returned = simulate_base_game(num_rounds)
     print(f"   Wagered:  ${wagered / MONEY_SCALE:,.2f}")
     print(f"   Returned: ${returned / MONEY_SCALE:,.2f}")
