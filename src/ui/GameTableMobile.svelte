@@ -4651,9 +4651,15 @@
     transform: translateY(-39px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
-    transform: translateX(18px) !important;
+    transform: translateY(-39px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-and-cards {
+    width: max-content !important;
+    max-width: none !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin: 0 auto !important;
     transform: translateY(1px) !important;
   }
   .table-wrap.phase-bet .felt.single-hand .cards-col.has-sidebets,
