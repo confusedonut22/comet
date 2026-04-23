@@ -4648,7 +4648,7 @@
     flex: 0 0 38px !important;
     width: 38px !important;
     margin-right: 0 !important;
-    transform: none !important;
+    transform: translateY(-39px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-col {
     transform: translateX(18px) !important;
