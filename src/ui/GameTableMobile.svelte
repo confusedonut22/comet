@@ -3941,6 +3941,20 @@
     .table-wrap.phase-play-single-hand .sb-box-label-213 {
       transform: translateY(5px);
     }
+    /* Lock single-hand play-phase sb-box to exactly 38×38 — same as screen 3 */
+    .table-wrap.phase-play-single-hand .sb-box,
+    .table-wrap.phase-play-single-hand .sb-box-editing,
+    .table-wrap.phase-play-single-hand .sb-box.sb-active {
+      width: 38px !important;
+      min-width: 38px !important;
+      max-width: 38px !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
+      overflow: hidden !important;
+      padding: 2px !important;
+      gap: 2px !important;
+    }
     /* Remove label offset when active (amount takes the space) */
     .table-wrap.phase-play-single-hand .sb-box.sb-active .sb-box-label,
     .table-wrap.phase-play-single-hand .sb-box.sb-active .sb-box-label-213 {
