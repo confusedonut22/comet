@@ -3194,11 +3194,11 @@
     }
     .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-      transform: translateY(68px);
+      transform: translateY(60px);
     }
     .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-      transform: translateY(58px);
+      transform: translateY(50px);
     }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
@@ -4967,12 +4967,12 @@
 
     .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-      transform: translateY(68px);
+      transform: translateY(60px);
     }
 
     .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-      transform: translateY(58px);
+      transform: translateY(50px);
     }
 
     .table-wrap.phase-play .sb-col {
@@ -5123,14 +5123,14 @@
       align-items: center !important;
       gap: 4px !important;
       margin: 0 auto !important;
-      transform: translateY(-14px) !important;
+      transform: none !important;
     }
 
     .table-wrap.phase-play .hands-row.two .sb-col {
       flex: 0 0 48px !important;
       width: 48px !important;
       margin-right: 0 !important;
-      transform: translateX(9px) !important;
+      transform: translateX(9px) translateY(-14px) !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
       flex: 0 0 48px !important;
