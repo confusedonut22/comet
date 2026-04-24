@@ -3194,11 +3194,11 @@
     }
     .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-      transform: translateY(80px);
+      transform: translateY(68px);
     }
     .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-      transform: translateY(70px);
+      transform: translateY(58px);
     }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
