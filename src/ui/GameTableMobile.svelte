@@ -4805,9 +4805,9 @@
   .table-wrap.phase-result-single-hand .felt.single-hand .hv-bubble {
     transform: translateY(3px) !important;
   }
-  /* Screen 3 single-hand: move bet-bar up 2px via margin (avoids transform cascade) */
-  .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
-    margin-top: -2px !important;
+  /* Screen 3: move bet-bar up 2px (phase-result-single-hand never applies, use phase-result) */
+  .table-wrap.phase-result .bet-bar {
+    margin-top: -1px !important;
   }
 
   /* Final anchor-triad lock: phase-result-two-hand only */
