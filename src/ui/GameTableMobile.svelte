@@ -5118,7 +5118,7 @@
       flex: 0 0 48px !important;
       width: 48px !important;
       margin-right: 0 !important;
-      transform: translateX(9px) translateY(-12px) !important;
+      transform: translateX(9px) translateY(-26px) !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
       flex: 0 0 48px !important;
