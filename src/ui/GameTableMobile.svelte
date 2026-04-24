@@ -4965,12 +4965,14 @@
       padding-bottom: 12px;
     }
 
-    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
-      transform: translateY(60px);
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
+    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
+      transform: translateY(68px);
     }
 
-    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
-      transform: translateY(50px);
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
+    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
+      transform: translateY(58px);
     }
 
     .table-wrap.phase-play .sb-col {
