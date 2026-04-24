@@ -615,7 +615,7 @@ export function newRound() {
     const originals = hs.filter(h => !h.isSplit);
     const base = originals.length > 0 ? originals : hs.slice(0, 1);
     const fresh = base.map(h => {
-      const nextBet = keepAutoBet ? (h.baseBet ?? h.bet) : 0;
+      const nextBet = keepAutoBet ? (h.baseBet || h.bet) : 0;
       const nextSideBets = keepSideBets ? { ...h.sb } : { pp: 0, t: 0 };
       return makeHand(nextBet, nextSideBets);
     });

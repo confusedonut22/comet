@@ -339,6 +339,11 @@
     sbDraft = { ...sbDraft, [idx + key]: val };
   }
 
+  function sbFocusInput(node) {
+    node.focus();
+    node.select();
+  }
+
   function commitSbDraft(idx, key) {
     const draftKey = idx + key;
     const raw = Number.parseFloat(String(sbDraft[draftKey] ?? '').replace(/[^0-9.]/g, ''));
@@ -358,8 +363,20 @@
 
   function onClear(idx) {
     const sb = sbSelect[idx];
-    if (sb) clearSideBet(idx, sb);
-    else clearBet(idx);
+    const hand = $hands[idx];
+    if (sb) {
+      clearSideBet(idx, sb);
+      return;
+    }
+    if (hand?.sb?.pp > 0) {
+      clearSideBet(idx, 'pp');
+      return;
+    }
+    if (hand?.sb?.t > 0) {
+      clearSideBet(idx, 't');
+      return;
+    }
+    clearBet(idx);
   }
 
   function onBetDraftInput(idx, nextValue) {
@@ -507,6 +524,16 @@
 
   function stopEvent(event) {
     event?.stopPropagation?.();
+  }
+
+  function stopClick(node) {
+    const handleClick = (event) => event.stopPropagation();
+    node.addEventListener("click", handleClick);
+    return {
+      destroy() {
+        node.removeEventListener("click", handleClick);
+      }
+    };
   }
 
   function onAddSlot(event) {
@@ -686,7 +713,7 @@
   {/if}
 
   {#if showOptionsMenu}
-    <div class="mobile-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} on:click={stopEvent}>
+    <div class="mobile-options-drawer" class:full-panel-open={$showRules || showAbout || showFeltPanel} use:stopClick>
       <div class="mobile-options-column">
         <button class="btn-tab btn-options-item btn-options-toggle-pill" class:active={$autoBetEnabled} on:click={toggleAutoBetSetting}>
           <span class="btn-options-toggle-label">Autobet</span>
@@ -702,7 +729,7 @@
         <button class="btn-tab btn-options-item" class:active={showAbout} on:click={toggleAbout}>About</button>
       </div>
       {#if showFeltPanel}
-        <div class="panel felt-panel felt-panel-inline" on:click={stopEvent}>
+        <div class="panel felt-panel felt-panel-inline" use:stopClick>
           <div class="panel-title">Texture</div>
           <div class="texture-picker">
             {#each TEXTURE_ROWS as row}
@@ -722,6 +749,7 @@
                     class:theme-felt-green={option.key === "felt-green"}
                     class:theme-felt-black={option.key === "felt-black"}
                     on:click={() => applyFeltTheme(option.key)}
+                    aria-label={option.key}
                   >
                     <span class="texture-option-swatch" aria-hidden="true"></span>
                   </button>
@@ -732,7 +760,7 @@
         </div>
       {/if}
       {#if $showRules}
-        <div class="panel rules-panel rules-panel-inline" on:click={stopEvent}>
+        <div class="panel rules-panel rules-panel-inline" use:stopClick>
           <div class="panel-title">How To Play</div>
           <div class="rules-section"><strong>The Goal</strong>
             <div class="rules-text">Get a hand closer to 21 than the dealer without going over. If you go over 21, you bust and lose automatically, even if the dealer busts too.</div>
@@ -859,7 +887,7 @@
         </div>
       {/if}
       {#if showAbout}
-        <div class="panel about-panel about-panel-inline" on:click={stopEvent}>
+        <div class="panel about-panel about-panel-inline" use:stopClick>
           <div class="panel-title">About</div>
           <div class="about-text">We're degens, same as you. We love Stake Originals Blackjack. We just always wanted more at the table. Sidebets. Multiple hands. Autoplay across three strategies: Conservative, Optimal, and Aggressive. We kept waiting for someone to build it and nobody did, so ChadJack did. It's not a competition, it's just more game. Drop a sidebet, open a second hand, and tell us you can stop at just one.</div>
         </div>
@@ -867,6 +895,8 @@
     </div>
   {/if}
 
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <!-- FELT AREA -->
   <div
     class="felt"
@@ -886,7 +916,7 @@
 
     <!-- INSURANCE MODAL — centered overlay -->
     {#if isIns && !isReplay}
-      <div class="ins-modal" on:click={stopEvent}>
+      <div class="ins-modal" use:stopClick>
         <div class="ins-modal-title">Dealer shows an Ace</div>
         <div class="ins-modal-sub">Take insurance against a Blackjack?</div>
         {#if $numSlots === 1}
@@ -927,9 +957,9 @@
     {/if}
 
     {#if !isReplay && isBet}
-      <div class="felt-menu" on:click={stopEvent}>
+      <div class="felt-menu" use:stopClick>
         <div class="felt-toggle-copy">{isSocial ? 'Play amount' : 'Wager input'}</div>
-        <div class="bet-entry-toggle felt-toggle-stack" on:click={stopEvent}>
+        <div class="bet-entry-toggle felt-toggle-stack" use:stopClick>
           <button class="bet-entry-btn" class:active={betEntryMode === 'amount'} on:click={() => betEntryMode = 'amount'}>Amount</button>
           <button class="bet-entry-btn" class:active={betEntryMode === 'chips'} on:click={() => betEntryMode = 'chips'}>Chips</button>
         </div>
@@ -1036,6 +1066,7 @@
                       <div class="sb-box sb-box-editing" on:click|stopPropagation>
                         <span class="sb-box-label" class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
                         <input
+                          use:sbFocusInput
                           class="sb-wager-input"
                           type="number"
                           inputmode="numeric"
@@ -1046,18 +1077,22 @@
                           on:input={(e) => onSbDraftInput(idx, sb.k, e.currentTarget.value)}
                           on:keydown={(e) => e.key === 'Enter' && commitSbDraft(idx, sb.k)}
                           on:blur={() => commitSbDraft(idx, sb.k)}
-                          autofocus
                         />
                       </div>
                     {:else}
-                      <div
-                        class="sb-box"
-                        class:sb-active={hand.sb[sb.k] > 0}
-                        on:click={() => $sideBetsEnabled && !isReplay && (isBet || isResult) && toggleSbSelect(idx, sb.k)}
-                      >
-                        <span class="sb-box-label" class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
-                        {#if hand.sb[sb.k] > 0}
-                          <span class="sb-box-amt">{fmt(hand.sb[sb.k], displayCurrency)}</span>
+                      <div class="sb-box-wrap">
+                        <div
+                          class="sb-box"
+                          class:sb-active={hand.sb[sb.k] > 0}
+                          on:click={() => $sideBetsEnabled && !isReplay && (isBet || isResult) && toggleSbSelect(idx, sb.k)}
+                        >
+                          <span class="sb-box-label" class:sb-box-label-213={sb.k === 't'}>{sb.n}</span>
+                          {#if hand.sb[sb.k] > 0}
+                            <span class="sb-box-amt">{fmt(hand.sb[sb.k], displayCurrency)}</span>
+                          {/if}
+                        </div>
+                        {#if hand.sb[sb.k] > 0 && (isBet || isResult) && !isReplay}
+                          <button type="button" class="sb-x-btn" on:click|stopPropagation={() => clearSideBet(idx, sb.k)} aria-label="Remove sidebet">✕</button>
                         {/if}
                       </div>
                     {/if}
@@ -1164,7 +1199,7 @@
                 </div>
                 {#if hand.bet > 0 || (activeSb && hand.sb[activeSb] > 0)}
                   <button class="btn-clear" on:click={() => onClear(idx)}>
-                    {activeSb && hand.sb[activeSb] > 0 ? `Clear ${activeSb === 'pp' ? 'PP' : '21+3'}` : 'Clear'}
+                    {activeSb && hand.sb[activeSb] > 0 ? `Clear ${activeSb === 'pp' ? 'PP' : '21+3'}` : hand.sb.pp > 0 || hand.sb.t > 0 ? 'Clear Side Bet' : 'Clear'}
                   </button>
                 {/if}
               {/if}
@@ -1184,7 +1219,7 @@
             {#if $numSlots < $maxHands}
               <!-- svelte-ignore a11y-click-events-have-key-events -->
               <!-- svelte-ignore a11y-no-static-element-interactions -->
-              <div class="ghost" on:click={onAddSlot}>+</div>
+              <button type="button" class="ghost" on:click={onAddSlot} aria-label="Add hand">+</button>
             {:else}
               <div class="ghost ghost-placeholder" aria-hidden="true"></div>
             {/if}
@@ -1198,11 +1233,11 @@
   </div>
 
   <!-- BOTTOM DOCK -->
-  <div class="bottom-dock" on:click={stopEvent}>
+  <div class="bottom-dock" use:stopClick>
 
       <!-- Auto panel -->
       {#if $showAuto && !autoplayDisabled}
-        <div class="panel autoplay-panel" on:click={stopEvent}>
+        <div class="panel autoplay-panel" use:stopClick>
           <div class="panel-label">Mode</div>
           <div class="mode-row">
             {#each AUTO_MODES as mode}
@@ -1242,10 +1277,6 @@
       {/if}
 
 
-      {#if isPlay && $numSlots === 1}
-        {@const totalWager = $hands.reduce((sum, h) => sum + (h.bet || 0), 0)}
-        <div class="action-wager-label" class:multi-play-wager={isPlay && $numSlots > 1}>{isSocial ? 'Total Play:' : 'Wager:'} {fmt(totalWager, displayCurrency)}</div>
-      {/if}
       <!-- Action area: stop bar during autoplay, hit grid during normal play -->
       <div class="action-area-fixed">
         {#if $autoPlay && !isReplay && !autoplayDisabled}
@@ -1573,11 +1604,6 @@
     line-height: 1;
     padding: 7px 10px;
     white-space: nowrap;
-  }
-  .session-pill strong {
-    color: #e8d48b;
-    margin-right: 4px;
-    font-weight: 700;
   }
   .session-pill.positive { color: #85f7ad; }
   .session-pill.negative { color: #ff8e8e; }
@@ -2467,6 +2493,7 @@
     border-radius: 7px;
     border: 2.5px dashed #ffffff;
     background: transparent;
+    appearance: none;
     cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; padding: 5px 4px;
@@ -2474,6 +2501,7 @@
     color: #ffffff;
     user-select: none;
     box-shadow: none;
+    font: inherit;
   }
   .sb-box.sb-active {
     border-style: solid;
@@ -2489,6 +2517,15 @@
   }
   .sb-box-label { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2; font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; }
   .sb-box-amt   { font-size: 14px; font-weight: 700; color: #ffffff; }
+  .sb-box-wrap { position: relative; }
+  .sb-x-btn {
+    position: absolute; top: -5px; left: -5px;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #000; color: #fff;
+    font-size: 8px; font-weight: 900; line-height: 1;
+    border: none; cursor: pointer; padding: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+  }
   .sb-box-editing {
     width: 72px; min-height: 52px;
     border-radius: 7px;
@@ -2556,10 +2593,12 @@
     width: 104px; height: 146px; border-radius: 8px;
     border: 2.5px dashed rgba(255,255,255,0.55);
     background: transparent;
+    appearance: none;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     font-size: 28px; color: rgba(255,255,255,0.55); opacity: 1;
     transition: all 0.2s;
+    font: inherit;
   }
   .ghost:hover { opacity: 1; border-color: rgba(255,255,255,0.72); }
 
@@ -3854,16 +3893,38 @@
     }
     .table-wrap.phase-play .sb-box,
     .table-wrap.phase-play .sb-box-editing {
-      width: 32.4px;
-      min-width: 32.4px;
-      max-width: 32.4px;
-      height: 32.4px !important;
-      min-height: 32.4px !important;
-      max-height: 32.4px;
+      width: 38px;
+      min-width: 38px;
+      max-width: 38px;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px;
       justify-content: center;
       align-items: center;
       gap: 0;
       padding: 0;
+    }
+    /* X button: center above top edge so it never overlaps the label */
+    .table-wrap.phase-play .sb-x-btn {
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      font-size: 7px;
+    }
+    /* Active sidebet during play: let the box grow to fit label + amount */
+    .table-wrap.phase-play .sb-box.sb-active {
+      height: auto !important;
+      max-height: none !important;
+      min-height: 48px !important;
+      padding: 4px 3px !important;
+      gap: 3px !important;
+      justify-content: center !important;
+    }
+    .table-wrap.phase-play .sb-box.sb-active .sb-box-amt {
+      font-size: 9px !important;
+      line-height: 1 !important;
     }
     .table-wrap.phase-play .sb-box-label,
     .table-wrap.phase-play .sb-box-label-213 {
@@ -3879,6 +3940,11 @@
     .table-wrap.phase-play-single-hand .sb-box-label,
     .table-wrap.phase-play-single-hand .sb-box-label-213 {
       transform: translateY(5px);
+    }
+    /* Remove label offset when active (amount takes the space) */
+    .table-wrap.phase-play-single-hand .sb-box.sb-active .sb-box-label,
+    .table-wrap.phase-play-single-hand .sb-box.sb-active .sb-box-label-213 {
+      transform: none !important;
     }
     .table-wrap.phase-play .action-wager-label {
       margin-bottom: 0;
@@ -5024,7 +5090,7 @@
       width: max-content !important;
       max-width: none !important;
       justify-content: flex-start !important;
-      align-items: flex-start !important;
+      align-items: center !important;
       gap: 4px !important;
       margin: 0 auto !important;
       transform: none !important;
