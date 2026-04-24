@@ -5103,7 +5103,6 @@
     }
 
     /* Final mobile two-hand sidebet anchor: pin sidebets to the left edge of the live card lane. */
-    .table-wrap.phase-play .hands-row.two .sb-and-cards,
     .table-wrap.phase-result-two-hand .hands-row.two .sb-and-cards {
       width: max-content !important;
       max-width: none !important;
@@ -5113,12 +5112,21 @@
       margin: 0 auto !important;
       transform: none !important;
     }
+    .table-wrap.phase-play .hands-row.two .sb-and-cards {
+      width: max-content !important;
+      max-width: none !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      gap: 4px !important;
+      margin: 0 auto !important;
+      transform: translateY(-14px) !important;
+    }
 
     .table-wrap.phase-play .hands-row.two .sb-col {
       flex: 0 0 48px !important;
       width: 48px !important;
       margin-right: 0 !important;
-      transform: translateX(9px) translateY(-26px) !important;
+      transform: translateX(9px) !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
       flex: 0 0 48px !important;
