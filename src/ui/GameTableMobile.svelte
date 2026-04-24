@@ -1294,8 +1294,11 @@
         {/if}
       </div>
       {#if $message && isResult}
+        {@const tone = ($message === 'You Win!' || $message === 'Push') ? 'win' : $message === 'Dealer Wins' ? 'lose' : ''}
         <div class="action-result-msg">
-          <span class="nav-result-text mobile-result-text">{mobileResultLabel($message)}</span>
+          <span class="result-pill" class:win={tone === 'win'} class:lose={tone === 'lose'}>
+            {mobileResultLabel($message)}
+          </span>
         </div>
       {/if}
 
@@ -5016,6 +5019,27 @@
   .nav-result-text.win  { color: #66ff88; }
   .nav-result-text.lose { color: #ef5350; }
 
+  /* Result pill — matches desktop style, shown above Next Hand on screen 3 */
+  .result-pill {
+    display: inline-block;
+    text-align: center;
+    padding: 5px 22px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255,255,255,0.22);
+    background: rgba(0,0,0,0.75);
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #bfb49a;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .result-pill.win  { color: #2db870; border-color: rgba(45,184,112,0.6); background: rgba(30,110,68,0.92); }
+  .result-pill.lose { color: #ef5350; border-color: rgba(239,83,80,0.55); background: rgba(110,30,30,0.88); }
+
   /* ANIMATIONS */
   @keyframes introFade {
     0%   { opacity: 0; transform: scale(0.9); }
@@ -5109,12 +5133,8 @@
       border-radius: 10px;
     }
 
-    .action-result-msg .mobile-result-text {
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      color: #e8d48b;
-      text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 10px rgba(212,168,64,0.12);
+    .action-result-msg .result-pill {
+      font-size: 15px;
     }
 
     /* Final mobile two-hand sidebet anchor: pin sidebets to the left edge of the live card lane. */
