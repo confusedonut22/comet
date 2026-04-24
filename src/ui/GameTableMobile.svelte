@@ -4805,6 +4805,10 @@
   .table-wrap.phase-result-single-hand .felt.single-hand .hv-bubble {
     transform: translateY(3px) !important;
   }
+  /* Screen 3 single-hand: move bet-bar up 2px via margin (avoids transform cascade) */
+  .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
+    margin-top: -2px !important;
+  }
 
   /* Final anchor-triad lock: phase-result-two-hand only */
   .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
