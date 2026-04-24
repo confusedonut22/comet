@@ -2489,14 +2489,16 @@
   .cards-col.has-sidebets { --sidebet-center-offset: 0px; }
 
   .sb-box {
-    width: 72px; min-height: 52px;
+    width: 39px; min-width: 39px; max-width: 39px;
+    height: 39px; min-height: 39px; max-height: 39px;
     border-radius: 7px;
-    border: none;
+    border: 2px dashed rgba(255,255,255,0.7);
     background: transparent;
     appearance: none;
     cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px; padding: 5px 4px;
+    gap: 2px; padding: 3px;
+    overflow: hidden;
     transition: all 0.15s;
     color: #ffffff;
     user-select: none;
@@ -2504,16 +2506,20 @@
     font: inherit;
   }
   .sb-box.sb-active {
+    border-style: solid;
+    border-color: rgba(232,212,139,0.68);
     background: rgba(38, 97, 66, 0.72);
     color: #e8d48b;
   }
   .sb-box.sb-selected {
+    border-style: solid;
+    border-color: #d4a840;
     background: rgba(212,168,64,0.18);
     box-shadow: 0 0 10px rgba(212,168,64,0.3);
     color: #f2e8d0;
   }
-  .sb-box-label { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2; font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; }
-  .sb-box-amt   { font-size: 14px; font-weight: 700; color: #ffffff; }
+  .sb-box-label { font-size: 8px; font-weight: 700; text-align: center; line-height: 1; font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: inherit; }
+  .sb-box-amt   { font-size: 8px; font-weight: 700; color: inherit; line-height: 1; text-align: center; }
   .sb-box-wrap { position: relative; }
   .sb-x-btn {
     position: absolute; top: -5px; left: -5px;
@@ -3910,18 +3916,18 @@
       height: 12px;
       font-size: 7px;
     }
-    /* Active sidebet during play: let the box grow to fit label + amount */
+    /* Active sidebet during play: stay locked at 39×39 */
     .table-wrap.phase-play .sb-box.sb-active {
-      height: auto !important;
-      max-height: none !important;
-      min-height: 48px !important;
-      padding: 4px 3px !important;
-      gap: 3px !important;
+      width: 39px !important;
+      min-width: 39px !important;
+      max-width: 39px !important;
+      height: 39px !important;
+      min-height: 39px !important;
+      max-height: 39px !important;
+      overflow: hidden !important;
+      padding: 3px !important;
+      gap: 2px !important;
       justify-content: center !important;
-    }
-    .table-wrap.phase-play .sb-box.sb-active .sb-box-amt {
-      font-size: 9px !important;
-      line-height: 1 !important;
     }
     .table-wrap.phase-play .sb-box-label,
     .table-wrap.phase-play .sb-box-label-213 {
@@ -3936,20 +3942,20 @@
     }
     .table-wrap.phase-play-single-hand .sb-box-label,
     .table-wrap.phase-play-single-hand .sb-box-label-213 {
-      transform: translateY(5px);
+      transform: none;
     }
-    /* Lock single-hand play-phase sb-box to exactly 38×38 — same as screen 3 */
+    /* Lock single-hand play-phase sb-box to exactly 39×39 — same as screen 3 */
     .table-wrap.phase-play-single-hand .sb-box,
     .table-wrap.phase-play-single-hand .sb-box-editing,
     .table-wrap.phase-play-single-hand .sb-box.sb-active {
-      width: 38px !important;
-      min-width: 38px !important;
-      max-width: 38px !important;
-      height: 38px !important;
-      min-height: 38px !important;
-      max-height: 38px !important;
+      width: 39px !important;
+      min-width: 39px !important;
+      max-width: 39px !important;
+      height: 39px !important;
+      min-height: 39px !important;
+      max-height: 39px !important;
       overflow: hidden !important;
-      padding: 2px !important;
+      padding: 3px !important;
       gap: 2px !important;
     }
     /* Remove label offset when active (amount takes the space) */
@@ -4133,18 +4139,18 @@
     .table-wrap.phase-play .sb-box-editing,
     .table-wrap.phase-result .sb-box,
     .table-wrap.phase-result .sb-box-editing {
-      width: 38px;
-      min-width: 38px;
-      max-width: 38px;
-      height: 38px;
-      min-height: 38px;
-      max-height: 38px;
-      padding: 0;
-      border: none;
-      border-radius: 7px;
-      justify-content: flex-start;
-      gap: 1px;
-      color: #ffffff;
+      width: 39px !important;
+      min-width: 39px !important;
+      max-width: 39px !important;
+      height: 39px !important;
+      min-height: 39px !important;
+      max-height: 39px !important;
+      padding: 3px !important;
+      overflow: hidden !important;
+      border-radius: 7px !important;
+      justify-content: center !important;
+      gap: 2px !important;
+      color: #ffffff !important;
     }
     .table-wrap.phase-bet .sb-box-label,
     .table-wrap.phase-play .sb-box-label,
@@ -4496,14 +4502,14 @@
     }
     .table-wrap.phase-play .hands-row.two .sb-box,
     .table-wrap.phase-play .hands-row.two .sb-box-editing {
-      width: 38px !important;
-      min-width: 38px !important;
-      max-width: 38px !important;
-      height: 38px !important;
-      min-height: 38px !important;
-      max-height: 38px !important;
-      padding: 0 !important;
-      border: none !important;
+      width: 39px !important;
+      min-width: 39px !important;
+      max-width: 39px !important;
+      height: 39px !important;
+      min-height: 39px !important;
+      max-height: 39px !important;
+      padding: 3px !important;
+      overflow: hidden !important;
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213,
@@ -4512,7 +4518,7 @@
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213 {
-      transform: translateY(-5px) !important;
+      transform: none !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(4px) !important;
@@ -4808,25 +4814,27 @@
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-box,
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
-    width: 38px !important;
-    min-width: 38px !important;
-    max-width: 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
+    width: 39px !important;
+    min-width: 39px !important;
+    max-width: 39px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    max-height: 39px !important;
+    overflow: hidden !important;
   }
   .table-wrap.phase-result .sb-box,
   .table-wrap.phase-result .sb-box-editing {
-    width: 38px !important;
-    min-width: 38px !important;
-    max-width: 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
+    width: 39px !important;
+    min-width: 39px !important;
+    max-width: 39px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    max-height: 39px !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 0 !important;
-    padding: 0 !important;
+    gap: 2px !important;
+    padding: 3px !important;
+    overflow: hidden !important;
   }
   .table-wrap.phase-result .sb-box-label,
   .table-wrap.phase-result .sb-box-label-213 {
@@ -4842,12 +4850,12 @@
     transform: translateY(-1.5px) !important;
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .sb-box-editing {
-    width: 38px !important;
-    min-width: 38px !important;
-    max-width: 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
+    width: 39px !important;
+    min-width: 39px !important;
+    max-width: 39px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    max-height: 39px !important;
     transform: none !important;
     overflow: hidden !important;
     position: relative !important;
@@ -5174,7 +5182,6 @@
 
     .table-wrap.phase-bet .sb-box,
     .table-wrap.phase-bet .sb-box-editing {
-      border: none !important;
       color: #ffffff !important;
     }
 
