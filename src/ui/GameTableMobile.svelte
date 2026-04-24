@@ -3192,11 +3192,13 @@
     .table-wrap.phase-bet .hands-row.two .hand-col:last-of-type {
       transform: translateY(90px);
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
-      transform: translateY(60px);
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
+    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
+      transform: translateY(80px);
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
-      transform: translateY(50px);
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
+    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
+      transform: translateY(70px);
     }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
