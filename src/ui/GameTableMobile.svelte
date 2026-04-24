@@ -4516,7 +4516,7 @@
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213 {
-      transform: translateY(4px) !important;
+      transform: translateY(-5px) !important;
     }
     .table-wrap.phase-result-two-hand .hands-row.two .cards-col.has-sidebets .hv-bubble {
       transform: translateX(4px) !important;
@@ -5110,7 +5110,12 @@
       transform: none !important;
     }
 
-    .table-wrap.phase-play .hands-row.two .sb-col,
+    .table-wrap.phase-play .hands-row.two .sb-col {
+      flex: 0 0 48px !important;
+      width: 48px !important;
+      margin-right: 0 !important;
+      transform: translateX(9px) translateY(-12px) !important;
+    }
     .table-wrap.phase-result-two-hand .hands-row.two .sb-col {
       flex: 0 0 48px !important;
       width: 48px !important;
