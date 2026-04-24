@@ -1482,8 +1482,8 @@
             {isResult ? "Play Again" : "Play"}
           </button>
         </div>
-      {:else if $autoPlay && showDesktopAutoplay}
-        <!-- Autoplay active: stop bar fills deal slot, no layout shift -->
+      {:else if $autoPlay}
+        <!-- Autoplay active: stop bar fills deal slot, always visible regardless of phase -->
         <div class="center-deal-wrap">
           <button class="btn-stop-bar" on:click={() => autoPlay.set(false)}>
             <span class="stop-bar-label">STOP AUTOPLAY</span>
@@ -3319,8 +3319,13 @@
   .mode-hint { min-height: 46px; }
 
   .desktop-auto-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
     width: min(820px, calc(100% - 24px));
-    margin: 0 auto 12px;
+    margin: 0;
   }
   .desktop-auto-head {
     display: flex;
