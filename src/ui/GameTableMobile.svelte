@@ -4805,8 +4805,8 @@
   .table-wrap.phase-result-single-hand .felt.single-hand .hv-bubble {
     transform: translateY(3px) !important;
   }
-  /* Screen 3: move bet-bar up 2px (phase-result-single-hand never applies, use phase-result) */
-  .table-wrap.phase-result .bet-bar {
+  /* Screen 3: move bet-bar up 2px - :global bypasses Svelte dead-CSS elimination */
+  :global(.table-wrap.phase-result .bet-bar) {
     margin-top: -1px !important;
   }
 
