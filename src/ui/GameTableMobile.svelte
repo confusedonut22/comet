@@ -2491,7 +2491,7 @@
   .sb-box {
     width: 72px; min-height: 52px;
     border-radius: 7px;
-    border: 2.5px dashed #ffffff;
+    border: none;
     background: transparent;
     appearance: none;
     cursor: pointer;
@@ -2504,13 +2504,10 @@
     font: inherit;
   }
   .sb-box.sb-active {
-    border-style: solid;
-    border-color: rgba(232,212,139,0.68);
     background: rgba(38, 97, 66, 0.72);
     color: #e8d48b;
   }
   .sb-box.sb-selected {
-    border-color: #d4a840;
     background: rgba(212,168,64,0.18);
     box-shadow: 0 0 10px rgba(212,168,64,0.3);
     color: #f2e8d0;
@@ -4143,11 +4140,10 @@
       min-height: 38px;
       max-height: 38px;
       padding: 0;
-      border-width: 1.8px;
+      border: none;
       border-radius: 7px;
       justify-content: flex-start;
       gap: 1px;
-      border-color: #ffffff;
       color: #ffffff;
     }
     .table-wrap.phase-bet .sb-box-label,
@@ -4507,7 +4503,7 @@
       min-height: 38px !important;
       max-height: 38px !important;
       padding: 0 !important;
-      border-color: #ffffff !important;
+      border: none !important;
     }
     .table-wrap.phase-play .hands-row.two .sb-box-label,
     .table-wrap.phase-play .hands-row.two .sb-box-label-213,
@@ -5178,7 +5174,7 @@
 
     .table-wrap.phase-bet .sb-box,
     .table-wrap.phase-bet .sb-box-editing {
-      border-color: #ffffff !important;
+      border: none !important;
       color: #ffffff !important;
     }
 
