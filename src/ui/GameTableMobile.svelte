@@ -4816,7 +4816,7 @@
   }
   .table-wrap.phase-result-single-hand .felt.single-hand .cards-col.has-sidebets .bet-bar,
   .table-wrap.phase-result-single-hand .felt.single-hand .bet-bar {
-    transform: translate(26px, -12px) scale(0.8) !important;
+    transform: translate(26px, -14px) scale(0.8) !important;
     transform-origin: center top !important;
     margin-left: 0 !important;
     align-self: center !important;
