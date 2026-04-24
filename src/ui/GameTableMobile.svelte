@@ -4798,6 +4798,13 @@
     transform: translateX(26px) !important;
     margin-bottom: 3px !important;
   }
+  /* Screen 3 single-hand: nudge hand-value numbers down */
+  .table-wrap.phase-result-single-hand .dealer-cards-col .hand-value {
+    transform: translateY(2px) !important;
+  }
+  .table-wrap.phase-result-single-hand .felt.single-hand .hv-bubble {
+    transform: translateY(3px) !important;
+  }
 
   /* Final anchor-triad lock: phase-result-two-hand only */
   .table-wrap.phase-result-two-hand .dealer-cards-col .hand-value {
