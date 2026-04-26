@@ -394,11 +394,13 @@ def play_round_record(
         }
     )
 
-    payout_multiplier = (
-        round(state.total_returned / state.total_wagered, 6)
+    payout_multiplier_float = (
+        state.total_returned / state.total_wagered
         if state.total_wagered > 0
         else 0.0
     )
+    # Spec requires uint64 integer — store as multiplier × 100 (e.g. 2.5x → 250)
+    payout_multiplier = int(round(payout_multiplier_float * 100))
 
     return {
         "events": events,
@@ -583,7 +585,8 @@ def write_bundle(
                     {
                         "id": record["id"],
                         "events": record["events"],
-                        "payoutMultiplier": record["payoutMultiplier"],
+                        # Spec: integer uint64 (multiplier × 100, e.g. 2.5x → 250)
+                        "payoutMultiplier": int(record["payoutMultiplier"]),
                     },
                     handle,
                     separators=(",", ":"),
@@ -593,9 +596,11 @@ def write_bundle(
         csv_path = out_dir / f"{mode_name}.csv"
         with csv_path.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
-            writer.writerow(["simulation_number", "round_probability", "payout_multiplier"])
+            # Spec: no header row, all uint64 values
+            # probability scaled by 10^12 → integer weight; payoutMultiplier must exactly match JSONL
             for record in collapsed:
-                writer.writerow([record["id"], record["probability"], record["payoutMultiplier"]])
+                prob_uint64 = int(round(float(record["probability"]) * 10**12))
+                writer.writerow([record["id"], prob_uint64, int(record["payoutMultiplier"])])
 
         logic_filename = f"{mode_name}.jsonl.zst"
         try:
@@ -611,29 +616,19 @@ def write_bundle(
         mode_entries.append(
             {
                 "name": mode_name,
-                "cost": mode_cost_units(mode_name),
-                "lookupTableFile": csv_path.name,
-                "gameLogicFile": logic_filename,
+                # Spec: float cost multiplier
+                "cost": float(mode_cost_units(mode_name)),
+                # Spec: field names must be "weights" and "events"
+                "weights": csv_path.name,
+                "events": logic_filename,
             }
         )
 
     index_json = out_dir / "index.json"
     index_json.write_text(
         json.dumps(
-            {
-                "bundleVersion": 1,
-                "draft": False,
-                "notes": [
-                    "Stake-style math export for ChadJack with the frozen 8-mode submission matrix.",
-                    "simulation_number is a sequential integer id for each unique round record.",
-                    "round_probability is a normalized probability (frequency / total_rounds) so all weights sum to 1.0.",
-                    "payoutMultiplier is a float ratio of total_returned / total_wagered, not a percentage.",
-                    "Full split support is included: same-rank split rounds, split aces receive one card each, DAS=False, and no re-splitting.",
-                    "Side bets are included only in the frozen single-hand and symmetric two-hand submission modes.",
-                    "Insurance, doubles, and splits remain in-round events and are not separate starting modes.",
-                ],
-                "modes": mode_entries,
-            },
+            # Spec: strictly enforced form — only "modes" array with name/cost/events/weights
+            {"modes": mode_entries},
             indent=2,
         ),
         encoding="utf-8",

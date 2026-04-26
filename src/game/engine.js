@@ -127,11 +127,14 @@ export function evaluate21Plus3(player1, player2, dealerUp, betAmount) {
  * Resolve a player hand against the dealer.
  * Returns { result, payout } where payout includes original bet on win/push.
  * Results: "win" | "blackjack" | "push" | "lose" | "bust"
+ *
+ * @param {boolean} fromSplit - When true, a 2-card 21 is NOT treated as blackjack (pays 1:1).
+ *   Standard rule: ace-split hands that reach 21 do not qualify as blackjack.
  */
-export function resolveHand(playerCards, dealerCards, betAmount) {
+export function resolveHand(playerCards, dealerCards, betAmount, fromSplit = false) {
   const pv = handValue(playerCards);
   const dv = handValue(dealerCards);
-  const pBJ = isBlackjack(playerCards);
+  const pBJ = !fromSplit && isBlackjack(playerCards);
   const dBJ = isBlackjack(dealerCards);
 
   if (pBJ && dBJ) return { result: "push",      payout: betAmount };

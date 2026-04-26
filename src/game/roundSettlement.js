@@ -91,7 +91,8 @@ export function settleDealerHands(hands, dealerCards) {
   const settledHands = hands.map((hand) => {
     if (hand.result) return hand;
 
-    const { result, payout: handPayout } = resolveHand(hand.cards, dealerCards, hand.bet);
+    const fromSplit = hand.isSplit === true || hand.isAceSplit === true;
+    const { result, payout: handPayout } = resolveHand(hand.cards, dealerCards, hand.bet, fromSplit);
     if (handPayout > 0) payout += handPayout;
 
     return {

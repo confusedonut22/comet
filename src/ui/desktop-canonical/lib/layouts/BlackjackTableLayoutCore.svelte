@@ -713,23 +713,23 @@
 
                 <div class="rules-section"><strong>Blackjack</strong>
                   <div class="rules-text">{isSocial
-                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It wins 3:2."
                     : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
                   }</div>
                 </div>
 
                 <div class="rules-section"><strong>Insurance</strong>
                   <div class="rules-text">{isSocial
-                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and wins 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
                     : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
                   }</div>
                 </div>
 
-                <div class="rules-section"><strong>Payouts</strong>
+                <div class="rules-section"><strong>{isSocial ? 'Wins' : 'Payouts'}</strong>
                   <div class="rules-text">
-                    Blackjack pays 3:2<br/>
-                    Winning hand pays 1:1<br/>
-                    Insurance pays 2:1
+                    {isSocial ? 'Blackjack wins 3:2' : 'Blackjack pays 3:2'}<br/>
+                    {isSocial ? 'Winning hand wins 1:1' : 'Winning hand pays 1:1'}<br/>
+                    {isSocial ? 'Insurance wins 2:1' : 'Insurance pays 2:1'}
                   </div>
                 </div>
 
@@ -742,7 +742,7 @@
 
                 <div class="rules-section"><strong>Perfect Pairs</strong>
                   <div class="rules-text rules-text-sm">{isSocial
-                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
+                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the win is profit only, your original side play amount is not returned on a win.'
                     : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
                   }</div>
                   <table class="payout-table">
@@ -756,7 +756,7 @@
 
                 <div class="rules-section"><strong>21+3</strong>
                   <div class="rules-text rules-text-sm">{isSocial
-                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
+                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the win is profit only, your original side play amount is not returned on a win."
                     : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
                   }</div>
                   <table class="payout-table">
@@ -772,7 +772,7 @@
 
                 <div class="rules-section"><strong>Perfect Pairs</strong>
                   <div class="rules-text rules-text-sm">{isSocial
-                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
+                    ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the win is profit only, your original side play amount is not returned on a win.'
                     : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
                   }</div>
                   <table class="payout-table">
@@ -786,7 +786,7 @@
 
                 <div class="rules-section"><strong>21+3</strong>
                   <div class="rules-text rules-text-sm">{isSocial
-                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
+                    ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the win is profit only, your original side play amount is not returned on a win."
                     : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
                   }</div>
                   <table class="payout-table">
@@ -803,7 +803,7 @@
                 <div class="rules-section"><strong>Game Rules</strong>
                   <div class="rules-text">
                     6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
-                    Dealer hits soft 17 and stands on hard 17.<br/>
+                    Dealer stands on soft 17 and hard 17.<br/>
                     Double down available on hard 9, 10, or 11 only.<br/>
                     One card only after doubling. No further hits.<br/>
                     Split available when first two cards share the same rank.<br/>
@@ -831,8 +831,8 @@
 
                 {#if showRtp}
                   <div class="rules-text rtp">{isSocial
-                    ? "ChadJack is a social casino game intended for entertainment only. No real money, prizes, or rewards are offered or implied. Base game RTP: 97.2%. Side plays carry a lower RTP and are optional. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
-                    : "Base game RTP: 97.2%. Side bets carry a lower RTP and are optional. RTP is a long-run statistical average; individual session results will vary. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
+                    ? "ChadJack is a social casino game intended for entertainment only. No real money, prizes, or rewards are offered or implied. Base game RTP: 97.3%. Side plays carry a lower RTP and are optional. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
+                    : "Base game RTP: 97.3%. Side bets carry a lower RTP and are optional. RTP is a long-run statistical average; individual session results will vary. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. ChadJack™ is a trademark of Chad Labs."
                   }</div>
                 {/if}
               </div>
@@ -1047,23 +1047,23 @@
               <section class="desktop-info-card">
                 <div class="rules-section"><strong>Blackjack</strong>
                   <div class="rules-text">{isSocial
-                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
+                    ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It wins 3:2."
                     : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
                   }</div>
                 </div>
 
                 <div class="rules-section"><strong>Insurance</strong>
                   <div class="rules-text">{isSocial
-                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+                    ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and wins 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
                     : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
                   }</div>
                 </div>
 
-                <div class="rules-section"><strong>Payouts</strong>
+                <div class="rules-section"><strong>{isSocial ? 'Wins' : 'Payouts'}</strong>
                   <div class="rules-text">
-                    Blackjack pays 3:2<br/>
-                    Winning hand pays 1:1<br/>
-                    Insurance pays 2:1
+                    {isSocial ? 'Blackjack wins 3:2' : 'Blackjack pays 3:2'}<br/>
+                    {isSocial ? 'Winning hand wins 1:1' : 'Winning hand pays 1:1'}<br/>
+                    {isSocial ? 'Insurance wins 2:1' : 'Insurance pays 2:1'}
                   </div>
                 </div>
 
@@ -1077,7 +1077,7 @@
                 <div class="rules-section"><strong>Game Rules</strong>
                   <div class="rules-text">
                     6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
-                    Dealer hits soft 17 and stands on hard 17.<br/>
+                    Dealer stands on soft 17 and hard 17.<br/>
                     Double down available on hard 9, 10, or 11 only.<br/>
                     One card only after doubling. No further hits.<br/>
                     Split available when first two cards share the same rank.<br/>
@@ -1113,12 +1113,12 @@
                 {#if showRtp}
                   <div class="rules-section"><strong>RTP (Return to Player)</strong>
                     <div class="rules-text rtp">{#if isSocial}
-                      Blackjack - 97.2%*<br/>
+                      Blackjack - 97.3%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
                       *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
                     {:else}
-                      Blackjack - 97.2%*<br/>
+                      Blackjack - 97.3%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
                       *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
@@ -1175,7 +1175,7 @@
         </div>
 
         <!-- CHAD LABS LOGO — right side, parallel with dealer logo -->
-        {#if isBet && !hideBetLogoDuringRedeal}
+        {#if isBet && !hideBetLogoDuringRedeal && !$autoPlay}
           <div class="felt-logo-row">
             <img src={LOGO_IMAGE} alt="ChadJack" class="felt-logo felt-logo-large" />
           </div>
@@ -1988,6 +1988,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    background-attachment: fixed;
   }
   .table-playfield,
   .playfield-top,
@@ -2003,6 +2004,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: multiply, color, normal;
   }
   .felt.felt-theme-classic-felt,
@@ -2013,6 +2015,7 @@
     background-size: cover, 780px 460px;
     background-position: center center, center center;
     background-repeat: no-repeat, repeat;
+    background-attachment: fixed;
     background-blend-mode: multiply, normal;
   }
   .felt.felt-theme-dark-marble,
@@ -2030,6 +2033,7 @@
       );
     background-size: cover, cover, cover, auto;
     background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, normal, normal, normal;
   }
   .felt.felt-theme-onyx-gold,
@@ -2071,6 +2075,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-velvet-green,
@@ -2082,6 +2087,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-velvet-black,
@@ -2093,6 +2099,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-ridge-blue,
@@ -2104,6 +2111,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-ridge-green,
@@ -2115,6 +2123,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-ridge-black,
@@ -2126,6 +2135,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-felt-blue,
@@ -2137,6 +2147,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-felt-green,
@@ -2148,6 +2159,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt.felt-theme-felt-black,
@@ -2159,6 +2171,7 @@
     background-size: cover, cover, cover;
     background-position: center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
     background-blend-mode: screen, multiply, normal;
   }
   .felt::before {
@@ -3138,6 +3151,9 @@
       inset 0 0 0 1px rgba(255,255,255,0.18),
       inset 0 -12px 18px rgba(0,0,0,0.18),
       0 1px 0 rgba(255,255,255,0.03);
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
   }
   .action-grid.dim {
     border-color: rgba(44, 52, 69, 0.9);
@@ -3183,16 +3199,18 @@
     box-shadow: none;
   }
   .btn-action {
-    padding: 9px 0; border-radius: 7px; font-size: 16px; font-weight: 700;
+    padding: 9px 0; border-radius: 7px; font-size: 22px; font-weight: 700;
     background: linear-gradient(180deg, #e8bf58, #b99135);
     color: #111;
-    border: 1px solid rgba(130, 102, 34, 0.9);
+    border: 2px solid #000;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.2),
-      inset 0 -10px 14px rgba(0,0,0,0.15);
+      inset 0 -10px 14px rgba(0,0,0,0.15),
+      0 0 0 1px rgba(130,102,34,0.9);
     font-family: 'Oswald', sans-serif;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    text-align: center;
     text-shadow: 0 1px 0 rgba(255,255,255,0.12);
   }
   .btn-action.dim {
@@ -3749,11 +3767,17 @@
     .hands-row.count-one .sb-and-cards                     { margin-left: -36px; }
     .hands-row.count-one .cards-col.has-sb .sb-and-cards   { margin-left: -74px; } /* -38 - 36 */
     .hands-row.count-two { grid-template-columns: repeat(2, max-content); column-gap: 125px; margin-top: -10px; }
+    /* Nudge cards+sidebets left 36px in 2-hand layout */
+    .hands-row.count-two .sb-and-cards                          { margin-left: -36px; }
+    .hands-row.count-two .cards-col.has-sb .sb-and-cards        { margin-left: -74px; } /* -38 - 36 */
     .hands-row.count-three { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
     /* Nudge cards+sidebets left 36px in 3-hand layout */
     .hands-row.count-three .sb-and-cards                        { margin-left: -36px; }
     .hands-row.count-three .cards-col.has-sb .sb-and-cards      { margin-left: -74px; } /* -38 - 36 */
     .hands-row.count-fourplus { grid-template-columns: repeat(3, max-content); column-gap: 125px; }
+    /* Nudge cards+sidebets left 36px in 4+ hand layout */
+    .hands-row.count-fourplus .sb-and-cards                     { margin-left: -36px; }
+    .hands-row.count-fourplus .cards-col.has-sb .sb-and-cards   { margin-left: -74px; } /* -38 - 36 */
     .hands-row.three-up {
       padding-top: 25px;
     }

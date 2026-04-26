@@ -233,9 +233,9 @@ def resolve_hand(player_cards: List[Card], dealer_cards: List[Card], bet_amount:
 
 
 def dealer_play(dealer_cards: List[Card], shoe: Shoe) -> List[Card]:
-    """Dealer draws until reaching 17 or higher. Hits soft 17 (H17 rule)."""
+    """Dealer draws until reaching 17 or higher. Stands on soft 17 (S17 rule)."""
     cards = list(dealer_cards)
-    while hand_value(cards) < 17 or (hand_value(cards) == 17 and is_soft(cards)):
+    while hand_value(cards) < 17:
         cards.append(shoe.draw())
     return cards
 
@@ -367,6 +367,11 @@ def split_hand(state: RoundState, hand_index: int, shoe: Shoe, allow_same_value_
         from_split_aces=splitting_aces,
         counts_as_blackjack=False,
     )
+    # Carry over side bet results from original hand to first split hand so
+    # that total_returned in complete_round includes them correctly.
+    # Side bets are evaluated on the original 2-card deal before splitting.
+    first_hand.side_bet_results = list(hand.side_bet_results)
+
     second_hand = HandState(
         cards=[second_card, shoe.draw()],
         bet=hand.bet,
