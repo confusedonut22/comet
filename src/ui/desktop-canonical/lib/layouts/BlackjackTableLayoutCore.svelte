@@ -3865,6 +3865,25 @@
     .center-deal-wrap .btn-deal { min-height: 56px; font-size: 22px; }
     .bottom-dock { padding: 0 8px 10px; }
     .cards-row { flex-wrap: nowrap; }
+
+    /* Header — unified 20px (matched then –33%) */
+    .balance { font-size: 26px; }
+    .total-wager-sub { font-size: 20px; color: #f2e8d0; }
+    .btn-options-toggle { font-size: 20px !important; min-height: 56px !important; padding: 10px 28px !important; color: #f2e8d0 !important; }
+    .btn-options-item { font-size: 26px !important; }
+    .session-pill { font-size: 20px; }
+
+    /* Action grid: collapsed 50% wide, centered */
+    .action-grid {
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-action {
+      font-size: 24px;
+      text-align: center;
+      border: 2px solid #000;
+    }
   }
 
   /* ── MOBILE OPTIMIZATIONS (max 767px) ─────────────────────────────────── */
