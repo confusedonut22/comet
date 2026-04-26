@@ -1929,7 +1929,7 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #e8d48b;
+    color: #ffffff;
     white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
@@ -3868,8 +3868,8 @@
 
     /* Header — unified 20px (matched then –33%) */
     .balance { font-size: 26px; }
-    .total-wager-sub { font-size: 20px; color: #f2e8d0; }
-    .btn-options-toggle { font-size: 20px !important; min-height: 56px !important; padding: 10px 28px !important; color: #f2e8d0 !important; }
+    .total-wager-sub { font-size: 20px; color: #ffffff; }
+    .btn-options-toggle { font-size: 20px !important; min-height: 56px !important; padding: 10px 28px !important; color: #ffffff !important; }
     .btn-options-item { font-size: 26px !important; }
     .session-pill { font-size: 20px; }
 
