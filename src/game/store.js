@@ -282,10 +282,28 @@ export async function refreshStakeBalance() {
   }
 }
 
+function resolveStakeMode(currentHands) {
+  const numHands = currentHands.length;
+  const hasPP  = currentHands.some(h => h.sb?.pp > 0);
+  const has213 = currentHands.some(h => h.sb?.t  > 0);
+  if (numHands >= 2) {
+    if (hasPP && has213) return "double_both_symmetric";
+    if (hasPP)           return "double_pp_symmetric";
+    if (has213)          return "double_213_symmetric";
+    return "double_base";
+  }
+  // single hand
+  if (hasPP && has213) return "single_both";
+  if (hasPP)           return "single_pp";
+  if (has213)          return "single_213";
+  return "single_base";
+}
+
 async function requestPlay(totalRoundDebit) {
   if (!hasStakeSession()) return null;
   const session = get(sessionQuery);
-  const handConfigs = get(hands).map((hand) => ({
+  const currentHands = get(hands);
+  const handConfigs = currentHands.map((hand) => ({
     bet: hand.bet,
     sideBets: hand.sb,
   }));
@@ -293,7 +311,7 @@ async function requestPlay(totalRoundDebit) {
   rgsError.set("");
   const response = await playRound(session, {
     amount: totalRoundDebit,
-    mode: "BASE",
+    mode: resolveStakeMode(currentHands),
     handConfigs,
   });
   if (response.balance != null) balance.set(response.balance);
