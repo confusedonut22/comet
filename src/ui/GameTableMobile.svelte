@@ -3930,7 +3930,10 @@
       gap: 8px;
       min-height: 0;
     }
-    .table-wrap.phase-play-single-hand .hands-stack,
+    .table-wrap.phase-play-single-hand .hands-stack {
+      transform: translateY(-66px) scale(1.35);
+      transform-origin: top center;
+    }
     .table-wrap.phase-result-single-hand .hands-stack {
       transform: translateY(-86px) scale(1.35);
       transform-origin: top center;
