@@ -3932,7 +3932,7 @@
     }
     .table-wrap.phase-play-single-hand .hands-stack,
     .table-wrap.phase-result-single-hand .hands-stack {
-      transform: translateY(-36px) scale(1.35);
+      transform: translateY(-86px) scale(1.35);
       transform-origin: top center;
     }
     .table-wrap.phase-bet .felt.single-hand .hands-stack {
