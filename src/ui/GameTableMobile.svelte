@@ -1851,7 +1851,7 @@
   }
 
   /* DEALER */
-  .dealer-area { min-height: 112px; position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; }
+  .dealer-area { min-height: 112px; position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; padding-top: 10px; }
   .dealer-area-hidden { min-height: 0 !important; overflow: hidden; }
   .dealer-area-hidden .dealer-placeholder { height: 0; }
   .dealer-placeholder { height: 96px; }
@@ -3780,7 +3780,7 @@
     .fact-block { width: 140px; font-size: 11px; padding: 8px 10px; top: 8px; right: 8px; left: auto; }
 
     /* Compact dealer */
-    .dealer-area        { min-height: 52px; gap: 6px; padding-top: 4px; padding-bottom: 4px; }
+    .dealer-area        { min-height: 52px; gap: 6px; padding-top: 14px; padding-bottom: 4px; }
     .dealer-placeholder { height: 64px; }
     .dealer-cards-col   { max-width: 100%; }
     .dealer-area .card-wrap { flex-shrink: 0; }
@@ -5013,7 +5013,7 @@
     .table-wrap.phase-play .dealer-area {
       min-height: 152px;
       flex-basis: 152px;
-      margin-top: -12px;
+      margin-top: -2px;
       margin-bottom: 2px;
     }
 
