@@ -133,6 +133,7 @@
   $: multi = $numSlots > 1;
   $: activeH = $activeHand >= 0 ? $hands[$activeHand] : null;
   $: isReplay = $replayMode;
+  let replayViewing = false;
   $: isSocial = $sessionQuery.social || $runtimeJurisdiction?.socialCasino === true;
   $: autoplayDisabled = $runtimeJurisdiction?.disabledAutoplay === true;
   $: showDesktopAutoplay = $autoBetEnabled && !autoplayDisabled && (isBet || isResult);
@@ -823,10 +824,18 @@
                 </div>
 
                 <div class="rules-section"><strong>Maximum Win</strong>
-                  <div class="rules-text">{isSocial
-                    ? "The maximum payout for a single round is capped at 10,000× your main play amount. Side plays are subject to their own individual caps as listed in their payout tables."
-                    : "The maximum payout for a single round is capped at 10,000× your main bet. Side bets are subject to their own individual caps as listed in their payout tables."
-                  }</div>
+                  <table class="payout-table">
+                    <tbody>
+                      <tr><td>1 hand, no side {isSocial ? 'plays' : 'bets'}</td><td>2.50×</td></tr>
+                      <tr><td>1 hand + Perfect Pairs</td><td>13.50×</td></tr>
+                      <tr><td>1 hand + 21+3</td><td>33.33×</td></tr>
+                      <tr><td>1 hand + both side {isSocial ? 'plays' : 'bets'}</td><td>19.00×</td></tr>
+                      <tr><td>2 hands, no side {isSocial ? 'plays' : 'bets'}</td><td>2.50×</td></tr>
+                      <tr><td>2 hands + Perfect Pairs</td><td>10.25×</td></tr>
+                      <tr><td>2 hands + 21+3</td><td>20.20×</td></tr>
+                      <tr><td>2 hands + both side {isSocial ? 'plays' : 'bets'}</td><td>21.17×</td></tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 {#if showRtp}
@@ -872,6 +881,13 @@
       </div>
       <button class="btn-replay-exit" on:click={exitReplayMode}>{isResult ? "Play Again" : "Play"}</button>
     </div>
+    {#if !replayViewing}
+      <div class="replay-play-overlay">
+        <button class="btn-replay-play" on:click={() => replayViewing = true}>
+          ▶ Watch Replay
+        </button>
+      </div>
+    {/if}
   {:else if $launchWarnings.length > 0}
     <div class="launch-warning">
       Launch params incomplete: {$launchWarnings.join(", ")}
@@ -1116,12 +1132,12 @@
                       Blackjack - 97.2%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
-                      *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
+                      *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.
                     {:else}
                       Blackjack - 97.2%*<br/>
                       Perfect Pairs - 86.4952%<br/>
                       21+3 - 85.7029%<br/><br/>
-                      *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
+                      *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.
                     {/if}</div>
                   </div>
                 {/if}
@@ -1476,12 +1492,13 @@
 
 
       <!-- Deal / autoplay row -->
-      {#if isReplay}
+      {#if isReplay && isResult && replayViewing}
         <div class="center-deal-wrap">
-          <button class="btn-deal active" on:click={exitReplayMode}>
-            {isResult ? "Play Again" : "Play"}
+          <button class="btn-deal active" on:click={() => replayViewing = false}>
+            Watch Again
           </button>
         </div>
+      {:else if isReplay}
       {:else if $autoPlay}
         <!-- Autoplay active: stop bar fills deal slot, always visible regardless of phase -->
         <div class="center-deal-wrap">
@@ -1974,6 +1991,32 @@
     white-space: nowrap;
   }
   .launch-warning { color: #e8d48b; }
+
+  .replay-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 80;
+  }
+  .btn-replay-play {
+    background: rgba(11, 28, 18, 0.88);
+    border: 2px solid rgba(212, 178, 88, 0.75);
+    color: #f2e8d0;
+    border-radius: 999px;
+    padding: 16px 36px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .btn-replay-play:hover {
+    background: rgba(20, 50, 30, 0.95);
+    border-color: rgba(212, 178, 88, 1);
+  }
 
   /* FELT */
   .felt {

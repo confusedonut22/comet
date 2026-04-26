@@ -392,6 +392,7 @@
   }
 
   let showAbout = false;
+  let replayViewing = false;
   let showFeltPanel = false;
   let showOptionsMenu = false;
   let feltEl;
@@ -699,13 +700,20 @@
     </div>
   {:else if isReplay}
     <div class="replay-banner">
-      <strong>Replay mode</strong>
+      <strong>Replay</strong>
       <span>
         {#if $sessionQuery.game}Game {$sessionQuery.game}{/if}
-        {#if $sessionQuery.version} · Version {$sessionQuery.version}{/if}
-        {#if $sessionQuery.event} · Event {$sessionQuery.event}{/if}
+        {#if $sessionQuery.version} · v{$sessionQuery.version}{/if}
+        {#if $sessionQuery.event} · #{$sessionQuery.event}{/if}
       </span>
     </div>
+    {#if !replayViewing}
+      <div class="replay-play-overlay">
+        <button class="btn-replay-play" on:click={() => replayViewing = true}>
+          ▶ Watch Replay
+        </button>
+      </div>
+    {/if}
     {:else if $launchWarnings.length > 0}
     <div class="launch-warning">
       Launch params incomplete: {$launchWarnings.join(", ")}
@@ -875,15 +883,30 @@
                 Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
-                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
+                *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.
               {:else}
                 Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
-                *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
+                *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts wagered on each selected option. If equal amounts are wagered on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and © 2026 Stake Engine.
               {/if}</div>
             </div>
           {/if}
+          <div class="rules-section"><strong>Maximum Win</strong>
+            <div class="rules-text">The maximum win multiplier (total return ÷ total amount wagered) per mode:</div>
+            <table class="payout-table">
+              <tbody>
+                <tr><td>1 hand, no side {isSocial ? 'plays' : 'bets'}</td><td>2.50×</td></tr>
+                <tr><td>1 hand + Perfect Pairs</td><td>13.50×</td></tr>
+                <tr><td>1 hand + 21+3</td><td>33.33×</td></tr>
+                <tr><td>1 hand + both side {isSocial ? 'plays' : 'bets'}</td><td>19.00×</td></tr>
+                <tr><td>2 hands, no side {isSocial ? 'plays' : 'bets'}</td><td>2.50×</td></tr>
+                <tr><td>2 hands + Perfect Pairs</td><td>10.25×</td></tr>
+                <tr><td>2 hands + 21+3</td><td>20.20×</td></tr>
+                <tr><td>2 hands + both side {isSocial ? 'plays' : 'bets'}</td><td>21.17×</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       {/if}
       {#if showAbout}
@@ -1302,6 +1325,15 @@
         </div>
       {/if}
 
+      <!-- Replay: Watch Again button -->
+      {#if isReplay && isResult && replayViewing}
+        <div class="center-deal-wrap">
+          <button class="btn-deal active" on:click={() => replayViewing = false}>
+            Watch Again
+          </button>
+        </div>
+      {/if}
+
       <!-- Deal button — hidden during autoplay so it doesn't cause layout shift -->
       {#if (isBet || isResult) && !isReplay && !$autoPlay}
         <div class="center-deal-wrap">
@@ -1618,6 +1650,27 @@
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; color: #e8d48b; text-shadow: 0 0 10px rgba(212,168,64,0.14); }
   .rgs-status  { margin-left: 10px; font-size: 14px; color: #e8d48b; white-space: nowrap; }
+  .replay-play-overlay {
+    width: min(960px, 94vw);
+    margin: 0 auto 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .btn-replay-play {
+    padding: 14px 40px;
+    border-radius: 14px;
+    border: 2px solid #e8d48b;
+    background: rgba(23, 46, 32, 0.92);
+    color: #e8d48b;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-replay-play:hover { background: rgba(40, 80, 50, 0.95); }
+
   .replay-banner,
   .launch-warning {
     width: min(960px, 94vw);
