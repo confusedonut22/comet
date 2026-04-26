@@ -1234,7 +1234,7 @@
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
+        {@const reserveSideBetLane = !hand.isSplit}
         <div class="hand-col">
 
           <!-- Cards area -->
@@ -1243,7 +1243,7 @@
               class="cards-col"
               class:mid-cards-col={useSecondRowCardSize}
               class:compact-cards-col={isDesktop && $numSlots > 6}
-              class:has-sb={($sideBetsEnabled && (isBet || isResult)) || hand.sb.pp > 0 || hand.sb.t > 0}
+              class:has-sb={!hand.isSplit}
             >
               <!-- Hand value bubble -->
               {#if hand.cards.length > 0}
@@ -1256,8 +1256,8 @@
 
               <!-- sb-col sits beside cards-row in a shared flex row for vertical centering -->
               <div class="sb-and-cards">
-                {#if (($sideBetsEnabled && (isBet || isResult)) || hand.sb.pp > 0 || hand.sb.t > 0)}
-                <div class="sb-col">
+                {#if reserveSideBetLane}
+                <div class="sb-col" class:sb-col-hidden={!$sideBetsEnabled && hand.sb.pp === 0 && hand.sb.t === 0}>
                   {#each [{k:"pp", n:"Perfect Pairs"}, {k:"t", n:"21+3"}] as sb}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -1897,7 +1897,8 @@
     width: 100%;
   }
   .sb-col-hidden {
-    display: none;
+    visibility: hidden;
+    pointer-events: none;
   }
   .btn-utility {
     font-family: 'Oswald', sans-serif !important;

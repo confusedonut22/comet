@@ -1062,7 +1062,7 @@
         {@const isActive = $activeHand === idx && isPlay}
         {@const rc = resultColor(hand.result)}
         {@const activeSb = sbSelect[idx]}
-        {@const reserveSideBetLane = $sideBetsEnabled && !hand.isSplit}
+        {@const reserveSideBetLane = !hand.isSplit}
         {@const isSplitRight = useSplitRows && idx === splitRightIdx}
         <div class="hand-col" class:empty-hand={hand.cards.length === 0} class:split-right={isSplitRight}
           style={isSplitRight ? 'position:absolute;left:calc(50% + 90px);top:50%;flex:none;width:auto;transform:translateY(-50%);--mobile-geometry-scale:calc(0.9 * 0.7);' : ''}>
