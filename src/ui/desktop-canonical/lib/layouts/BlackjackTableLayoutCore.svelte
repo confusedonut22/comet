@@ -3113,7 +3113,7 @@
     left: 0;
     right: 0;
     z-index: 50;
-    padding: 8px 0 max(16px, env(safe-area-inset-bottom));
+    padding: 8px 0 0;
     background: transparent;
     align-items: center;
   }
@@ -3888,6 +3888,11 @@
     .center-deal-wrap .btn-deal { min-height: 56px; font-size: 22px; }
     .bottom-dock { padding: 0 8px 10px; }
     .cards-row { flex-wrap: nowrap; }
+
+    /* Push deal bar and action grid to bottom of felt */
+    .table-wrap:not(.stacked-layout) .center-deal-wrap:not([style*="position"]) { margin-top: auto; }
+    .table-wrap:not(.stacked-layout):not(.phase-result) .center-deal-wrap { margin-top: auto; }
+    .table-wrap:not(.stacked-layout) .action-area-fixed { margin-top: auto; }
   }
 
   /* ── MOBILE OPTIMIZATIONS (max 767px) ─────────────────────────────────── */
