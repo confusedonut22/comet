@@ -3867,7 +3867,7 @@
     .cards-row { flex-wrap: nowrap; }
 
     /* Header — unified 20px (matched then –33%) */
-    .balance { font-size: 26px; }
+    .balance { font-size: 52px; }
     .total-wager-sub { font-size: 20px; color: #ffffff; }
     .btn-options-toggle { font-size: 20px !important; min-height: 56px !important; padding: 10px 28px !important; color: #ffffff !important; }
     .btn-options-item { font-size: 26px !important; }
