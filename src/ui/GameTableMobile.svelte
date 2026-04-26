@@ -3932,7 +3932,7 @@
     }
     .table-wrap.phase-play-single-hand .hands-stack,
     .table-wrap.phase-result-single-hand .hands-stack {
-      transform: translateY(14px) scale(1.35);
+      transform: translateY(-36px) scale(1.35);
       transform-origin: top center;
     }
     .table-wrap.phase-bet .felt.single-hand .hands-stack {
@@ -5287,7 +5287,7 @@
       color: #ffffff !important;
     }
 
-    /* ── SINGLE-HAND dealer: screens 2 & 3 — pays line +25px, cards +20px down, size +20% ── */
+    /* ── SINGLE-HAND dealer: screens 2 & 3 — LOCKED — pays line +25px, cards +20px down, size +20% ── */
     .table-wrap.phase-play-single-hand .dealer-area,
     .table-wrap.phase-result-single-hand .dealer-area {
       min-height: 245px !important;
