@@ -5287,5 +5287,41 @@
       color: #ffffff !important;
     }
 
+    /* ── SINGLE-HAND dealer: screens 2 & 3 — pays line +25px, cards +20px down, size +20% ── */
+    .table-wrap.phase-play-single-hand .dealer-area,
+    .table-wrap.phase-result-single-hand .dealer-area {
+      min-height: 245px !important;
+      flex: 0 0 245px !important;
+    }
+    /* Pays line (CHADJACK pays 3 to 2): shift down 25px from its -16px base → 9px */
+    .table-wrap.phase-play-single-hand .dealer-pays-wrap {
+      margin-top: 9px !important;
+    }
+    /* Dealer cards col: shift down 20px */
+    .table-wrap.phase-play-single-hand .dealer-cards-col,
+    .table-wrap.phase-result-single-hand .dealer-cards-col {
+      margin-top: 20px !important;
+    }
+    /* Dealer card size: 92×156 → 110×187 (+20%) */
+    .table-wrap.phase-play-single-hand .dealer-cards-col .card,
+    .table-wrap.phase-play-single-hand .dealer-cards-col .card.small,
+    .table-wrap.phase-result-single-hand .dealer-cards-col .card,
+    .table-wrap.phase-result-single-hand .dealer-cards-col .card.small {
+      width: 110px !important;
+      height: 187px !important;
+      border-radius: 10px !important;
+    }
+    .table-wrap.phase-play-single-hand .dealer-cards-col .card-rank,
+    .table-wrap.phase-result-single-hand .dealer-cards-col .card-rank  { font-size: 22px !important; }
+    .table-wrap.phase-play-single-hand .dealer-cards-col .card-suit-sm,
+    .table-wrap.phase-result-single-hand .dealer-cards-col .card-suit-sm { font-size: 18px !important; }
+    .table-wrap.phase-play-single-hand .dealer-cards-col .card-center,
+    .table-wrap.phase-result-single-hand .dealer-cards-col .card-center  { font-size: 43px !important; }
+    .table-wrap.phase-play-single-hand .dealer-area .cards-row,
+    .table-wrap.phase-result-single-hand .dealer-area .cards-row {
+      min-height: 187px !important;
+      overflow: visible !important;
+    }
+
   }
 </style>
