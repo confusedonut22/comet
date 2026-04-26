@@ -129,7 +129,6 @@
 
   // ─── COMPUTED ───
   $: isBet    = $phase === PHASE.BET;
-  $: isDeal   = $phase === PHASE.DEAL;
   $: isPlay   = $phase === PHASE.PLAY;
   $: isDealer = $phase === PHASE.DEALER;
   $: isResult = $phase === PHASE.RESULT;
@@ -652,12 +651,12 @@
 {:else}
 <div
   class="table-wrap"
-  class:phase-play={isDeal || isPlay || isDealer || isIns || isResult}
+  class:phase-play={isPlay || isDealer || isIns || isResult}
   class:phase-result={isResult}
   class:phase-result-single-hand={isResult && ($numSlots === 1 || useSplitRows)}
   class:phase-result-two-hand={isResult && $numSlots === 2 && !useSplitRows}
   class:phase-bet={isBet}
-  class:phase-play-single-hand={(isPlay || isDealer || isIns) && ($numSlots === 1 || useSplitRows)}
+  class:phase-play-single-hand={isPlay && ($numSlots === 1 || useSplitRows)}
   class:felt-theme-velvet-blue={feltTheme === "velvet-blue"}
   class:felt-theme-velvet-green={feltTheme === "velvet-green"}
   class:felt-theme-velvet-black={feltTheme === "velvet-black"}
@@ -785,21 +784,21 @@
           </div>
           <div class="rules-section"><strong>Blackjack</strong>
             <div class="rules-text">{isSocial
-              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It wins 3:2."
+              ? "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2."
               : "If your first two cards are an Ace and any 10-value card, that's a Blackjack, the best hand in the game. It pays 3:2, meaning a $10 bet wins $15."
             }</div>
           </div>
           <div class="rules-section"><strong>Insurance</strong>
             <div class="rules-text">{isSocial
-              ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and wins 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
+              ? "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side play that the dealer has Blackjack. It costs half your main play amount and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
               : "If the dealer's face-up card is an Ace, you'll be offered Insurance before play continues. Insurance is a side bet that the dealer has Blackjack. It costs half your main bet and pays 2:1 if the dealer does have Blackjack. It's generally not recommended for most players."
             }</div>
           </div>
-          <div class="rules-section"><strong>{isSocial ? 'Wins' : 'Payouts'}</strong>
+          <div class="rules-section"><strong>Payouts</strong>
             <div class="rules-text">
-              {isSocial ? 'Blackjack wins 3:2' : 'Blackjack pays 3:2'}<br/>
-              {isSocial ? 'Winning hand wins 1:1' : 'Winning hand pays 1:1'}<br/>
-              {isSocial ? 'Insurance wins 2:1' : 'Insurance pays 2:1'}
+              Blackjack pays 3:2<br/>
+              Winning hand pays 1:1<br/>
+              Insurance pays 2:1
             </div>
           </div>
           <div class="rules-section"><strong>{isSocial ? 'Side Plays' : 'Side Bets'}</strong>
@@ -810,7 +809,7 @@
           </div>
           <div class="rules-section"><strong>Perfect Pairs</strong>
             <div class="rules-text rules-text-sm">{isSocial
-              ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the win is profit only, your original side play amount is not returned on a win.'
+              ? 'This play wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side play amount is not returned on a win.'
               : 'This bet wins if your first two cards are a pair, same rank. There are three tiers. Note: the payout is profit only, your original side bet stake is not returned on a win.'
             }</div>
             <table class="payout-table">
@@ -823,7 +822,7 @@
           </div>
           <div class="rules-section"><strong>21+3</strong>
             <div class="rules-text rules-text-sm">{isSocial
-              ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the win is profit only, your original side play amount is not returned on a win."
+              ? "This play combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side play amount is not returned on a win."
               : "This bet combines your first two cards with the dealer's face-up card to make a 3-card poker hand. Note: the payout is profit only, your original side bet stake is not returned on a win."
             }</div>
             <table class="payout-table">
@@ -839,7 +838,7 @@
           <div class="rules-section"><strong>Game Rules</strong>
             <div class="rules-text">
               6-deck shoe, reshuffled when fewer than 52 cards remain.<br/>
-              Dealer stands on soft 17 and hard 17.<br/>
+              Dealer hits soft 17 and stands on hard 17.<br/>
               Double down available on hard 9, 10, or 11 only.<br/>
               One card only after doubling. No further hits.<br/>
               Split available when first two cards share the same rank.<br/>
@@ -870,21 +869,15 @@
               </tbody>
             </table>
           </div>
-          <div class="rules-section"><strong>Maximum Win</strong>
-            <div class="rules-text">{isSocial
-              ? "The maximum payout for a single round is capped at 10,000× your main play amount. Side plays are subject to their own individual caps as listed in their payout tables."
-              : "The maximum payout for a single round is capped at 10,000× your main bet. Side bets are subject to their own individual caps as listed in their payout tables."
-            }</div>
-          </div>
           {#if showRtp}
             <div class="rules-section"><strong>RTP (Return to Player)</strong>
               <div class="rules-text rtp">{#if isSocial}
-                Blackjack - 97.3%*<br/>
+                Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
                 *These figures describe the theoretical return profile of the game modes under the listed rules. Actual results vary by play choices and session outcomes. Gold Coins are virtual play tokens with no monetary value. Stake Cash is a virtual promotional token and social-casino play is subject to applicable terms, conditions, and local restrictions. Any malfunction voids the game round and all eventual payouts for the round.
               {:else}
-                Blackjack - 97.3%*<br/>
+                Blackjack - 97.2%*<br/>
                 Perfect Pairs - 86.4952%<br/>
                 21+3 - 85.7029%<br/><br/>
                 *Base game RTP is a simulation-backed estimate using basic strategy over 1,000,000-round test runs. Combined RTP depends on the amounts played on each selected option. If equal amounts are played on multiple options, the effective RTP is the average of those selected values. A player's skill and/or strategy will have an impact on their chances of winning. Any malfunction voids the game round and all eventual payouts for the round. Winnings are settled according to the amount received from the Remote Game Server.
@@ -1019,7 +1012,7 @@
 
     <!-- CHAD LABS LOGO — right side, parallel with dealer logo -->
     {#if isBet}
-      <div class="felt-logo-row" class:felt-logo-row-spacer={hideBetLogoDuringRedeal || $autoPlay}>
+      <div class="felt-logo-row" class:felt-logo-row-spacer={hideBetLogoDuringRedeal}>
         <img src={LOGO_IMAGE} alt="ChadJack" class="felt-logo felt-logo-large" />
       </div>
     {:else}
@@ -2532,7 +2525,7 @@
   .sb-box-amt   { font-size: 8px; font-weight: 700; color: inherit; line-height: 1; text-align: center; }
   .sb-box-wrap { position: relative; }
   .sb-x-btn {
-    position: absolute; top: -8px; left: -6.5px;
+    position: absolute; top: -5px; left: -5px;
     width: 15px; height: 15px; border-radius: 50%;
     background: #000; color: #fff;
     font-size: 8px; font-weight: 900; line-height: 1;
@@ -3333,9 +3326,6 @@
     .felt.single-hand .ghost-wrap {
       padding-top: 24px;
     }
-    .table-wrap.phase-bet .felt.single-hand .ghost-wrap {
-      display: flex;
-    }
     .ghost-row {
       width: 100%;
     }
@@ -3887,22 +3877,13 @@
       gap: 8px;
       min-height: 0;
     }
-    .table-wrap.phase-play-single-hand .hands-stack {
-      transform: translateY(41px) scale(1.08);
-      transform-origin: top center;
-    }
-    .table-wrap.phase-play:not(.phase-play-single-hand) .hands-stack,
-    .table-wrap.phase-result:not(.phase-result-single-hand) .hands-stack {
-      transform: translateY(37px);
-      transform-origin: top center;
-    }
+    .table-wrap.phase-play-single-hand .hands-stack,
     .table-wrap.phase-result-single-hand .hands-stack {
-      transform: translateY(-4px) scale(1.08);
+      transform: translateY(14px) scale(1.08);
       transform-origin: top center;
     }
-    .table-wrap.phase-bet .felt.single-hand .hands-stack,
-    .table-wrap.phase-play:not(.phase-play-single-hand) .felt.single-hand .hands-stack {
-      transform: translateY(44px) scale(1.08);
+    .table-wrap.phase-bet .felt.single-hand .hands-stack {
+      transform: translateY(-6px) scale(1.08);
       transform-origin: top center;
     }
     .table-wrap.phase-play .hands-row.multi {
@@ -3931,11 +3912,11 @@
       gap: 0;
       padding: 0;
     }
-    /* X button: top-left corner of sidebet box */
+    /* X button: center above top edge so it never overlaps the label */
     .table-wrap.phase-play .sb-x-btn {
-      top: -8px;
-      left: -6.5px;
-      transform: none;
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 12px;
       height: 12px;
       font-size: 7px;
