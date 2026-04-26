@@ -3248,13 +3248,17 @@
     .table-wrap.phase-bet .hands-row.two .hand-col:last-of-type {
       transform: translateY(90px);
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
-    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-      transform: translateY(60px);
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
+      transform: translateY(80px);
     }
-    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
+    .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
+      transform: translateY(77px);
+    }
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
+      transform: translateY(93px);
+    }
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-      transform: translateY(50px);
+      transform: translateY(73px);
     }
     .hands-row.two .cards-area {
       width: min(100%, 308px);
@@ -5035,14 +5039,18 @@
       padding-bottom: 12px;
     }
 
-    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type,
+    .table-wrap.phase-play .hands-row.two .hand-col:first-of-type {
+      transform: translateY(80px);
+    }
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:first-of-type {
-      transform: translateY(60px);
+      transform: translateY(77px);
     }
 
-    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type,
+    .table-wrap.phase-play .hands-row.two .hand-col:last-of-type {
+      transform: translateY(93px);
+    }
     .table-wrap.phase-result-two-hand .hands-row.two .hand-col:last-of-type {
-      transform: translateY(50px);
+      transform: translateY(73px);
     }
 
     .table-wrap.phase-play .sb-col {
@@ -5288,6 +5296,32 @@
     .table-wrap.phase-bet .sb-box-label-213,
     .table-wrap.phase-bet .sb-box-amt {
       color: #ffffff !important;
+    }
+
+    /* ── MULTI-HAND player cards +10% screens 2 & 3 — LOCKED ── */
+    .table-wrap.phase-play .hands-row.two .card,
+    .table-wrap.phase-play .hands-row.two .card.small,
+    .table-wrap.phase-play .hands-row.two .card-placeholder,
+    .table-wrap.phase-play .hands-row.two .card-placeholder.small,
+    .table-wrap.phase-result-two-hand .hands-row.two .card,
+    .table-wrap.phase-result-two-hand .hands-row.two .card.small,
+    .table-wrap.phase-result-two-hand .hands-row.two .card-placeholder,
+    .table-wrap.phase-result-two-hand .hands-row.two .card-placeholder.small {
+      width: calc(101px * var(--mobile-geometry-scale)) !important;
+      height: calc(172px * var(--mobile-geometry-scale)) !important;
+      border-radius: 9px !important;
+    }
+    .table-wrap.phase-play .hands-row.two .card-rank,
+    .table-wrap.phase-result-two-hand .hands-row.two .card-rank {
+      font-size: calc(20px * var(--mobile-geometry-scale)) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .card-suit-sm,
+    .table-wrap.phase-result-two-hand .hands-row.two .card-suit-sm {
+      font-size: calc(17px * var(--mobile-geometry-scale)) !important;
+    }
+    .table-wrap.phase-play .hands-row.two .card-center,
+    .table-wrap.phase-result-two-hand .hands-row.two .card-center {
+      font-size: calc(40px * var(--mobile-geometry-scale)) !important;
     }
 
     /* ── SINGLE-HAND dealer: screens 2 & 3 — LOCKED — pays line +25px, cards +20px down, size +20% ── */
