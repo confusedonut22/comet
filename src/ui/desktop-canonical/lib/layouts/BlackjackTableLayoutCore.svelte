@@ -1570,7 +1570,7 @@
     color: #f2e8d0;
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
-    zoom: 0.97;
+    zoom: 1;
   }
   :global(button) {
     font-family: 'Inter', sans-serif;
@@ -1632,7 +1632,7 @@
   .table-wrap {
     --desktop-ui-zoom: 0.8;
     --desktop-side-gutter-comp: 0px;
-    --desktop-autoplay-button-width: 108px;
+    --desktop-autoplay-button-width: 124px;
     min-height: 100vh;
     min-height: 100dvh;
     height: 100vh;
@@ -1929,7 +1929,7 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #e8d48b;
+    color: #d4a840;
     white-space: nowrap;
   }
   .balance     { font-size: 26px; font-weight: 700; white-space: nowrap; font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
@@ -3047,7 +3047,7 @@
   }
   .btn-auto-launch {
     grid-column: 3;
-    justify-self: end;
+    justify-self: start;
     flex-shrink: 0;
     padding: 0;
     border-radius: 0;
