@@ -161,6 +161,7 @@
   let nowMs = Date.now();
   let sessionClock = null;
   let hideBetLogoDuringRedeal = false;
+  let isDealing = false;
   $: showSessionTimer = $runtimeJurisdiction?.displaySessionTimer === true && Number.isInteger($sessionStartedAt) && !isReplay;
   $: showNetPosition = $runtimeJurisdiction?.displayNetPosition === true && !isReplay;
   $: displayCurrency = isSocial ? normalizeSocialCurrency($runtimeCurrency) : $runtimeCurrency;
@@ -193,16 +194,18 @@
     && $hands.length < 6
     && activeH.cards[0].rank === activeH.cards[1].rank;
   $: isBadBeat = isResult && $message;
-  $: dealLabel = $autoPlay ? `Auto ${$autoCount}/${$autoMax}` : isDealer ? "Dealing..." : isIns ? "Insurance..." : isResult ? "Next Hand" : "Deal";
+  $: dealLabel = $autoPlay ? `Auto ${$autoCount}/${$autoMax}` : isDealer ? "Dealing..." : isIns ? "Insurance..." : (isResult || isDealing) ? "Next Hand" : "Deal";
   $: tableControlMode = isDesktop && !isPlay ? 'table' : 'footer';
 
   // ─── ACTIONS ───
   function onDeal() {
     if (isResult) {
       hideBetLogoDuringRedeal = true;
+        isDealing = true;
       newRound();
       Promise.resolve(deal()).finally(() => {
         hideBetLogoDuringRedeal = false;
+        isDealing = false;
       });
     } else if (isBet) {
       deal();
@@ -1050,7 +1053,7 @@
       <div class="divider-copy">CHADJACK pays 3 to 2</div>
     </div>
     <!-- PLAYER HANDS -->
-    <div class="hands-stack">
+    <div class="hands-stack" class:cards-visible={$hands.some(h => h.cards.length > 0)}>
       {#each handRows as row, rowIdx}
       <div class="hands-row" class:multi class:two={$numSlots === 2 && !useSplitRows} class:four={$numSlots === 4} class:has-split={useSplitRows}>
       <!-- Invisible left spacer mirrors ghost width — keeps card stack at screen center -->
@@ -2397,7 +2400,7 @@
   .msg-text.bad-beat { font-size: 30px; color: #ef5350; }
 
   /* HANDS ROW */
-  .hands-stack { display: flex; flex-direction: column; align-items: center; width: 100%; }
+  .hands-stack { display: flex; flex-direction: column; align-items: center; width: 100%; opacity: 0; transition: opacity 0.15s ease; } .hands-stack.cards-visible { display: flex; flex-direction: column; align-items: center; width: 100%; }
   .hands-row { display: flex; justify-content: center; gap: 16px; padding-top: 0; min-height: 0; flex: 0 0 auto; align-items: center; flex-wrap: nowrap; }
   .hands-row.multi { gap: 20px; }
   .hand-col  { display: flex; flex-direction: column; align-items: flex-start; flex: 0 0 auto; min-width: 0; justify-content: flex-start; }
@@ -3195,6 +3198,8 @@
     }
 
     /* Hands row takes natural height so felt can scroll past it */
+.hands-stack { opacity: 0; transition: opacity 0.15s ease; }
+.hands-stack.cards-visible { opacity: 1; }
     .hands-row {
       flex: 0 0 auto;
       gap: 10px;
@@ -3942,6 +3947,7 @@
       transform: translateY(-86px) scale(1.35);
       transform-origin: top center;
     }
+.table-wrap.phase-dealer-single-hand .hands-stack { transform: translateY(-66px) scale(1.35); transform-origin: top center; }
     .table-wrap.phase-bet .felt.single-hand .hands-stack {
       transform: translateY(-6px) scale(1.08);
       transform-origin: top center;
